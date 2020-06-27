@@ -60,13 +60,35 @@ static void printColoredByHash(const std::string& str)
     setColor(kWhite); /* todo: save and restore original color if its not white? */
 }
 
+static int readline(char * buff, int len)
+{
+    /* for files without final newline last fgets read line without \n and set eof */
+    if(feof(stdin))
+        return 0;
+
+    buff[0] = '\0'; /* to make sure we got 0 len str if we're about to hit eof */
+    fgets(buff, 1000, stdin);
+
+    /* this happens for files that do have newline at end of file too */
+    if(strlen(buff) == 0 && feof(stdin))
+        return 0;
+
+    /* if we have a newline at end of line - remove it */
+    if(strchr(buff, '\n'))
+        *strchr(buff, '\n') = '\0';
+
+    return 1;
+}
+
 int main(int argc, char ** argv)
 {
+    char buff[1024];
+
     doit();
 
-    std::string str;
-    while(std::getline(std::cin, str))
+    while(readline(buff, 1000))
     {
+        std::string str = buff;
         std::string sofar;
         for(const char c : str)
         {
