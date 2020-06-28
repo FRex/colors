@@ -4,15 +4,45 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-static void doit(void)
+static int eanbleConsoleColor(void)
 {
-    //if color setting fails just act like cat does?
-    //todo: error handling, reporting, etc.
     HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
-    DWORD dwMode = 0;
-    GetConsoleMode(console, &dwMode);
-    dwMode |= 0x0004; //ENABLE_VIRTUAL_TERMINAL_PROCESSING
-    SetConsoleMode(console, dwMode);
+    DWORD mode = 0u;
+
+    if(console == INVALID_HANDLE_VALUE)
+    {
+        fprintf(
+            stderr,
+            "GetStdHandle(STD_OUTPUT_HANDLE) returned INVALID_HANDLE_VALUE, GetLastError() = %u\n",
+            GetLastError()
+        );
+        return 0;
+    }
+
+    if(console == NULL)
+    {
+        fprintf(stderr, "GetStdHandle(STD_OUTPUT_HANDLE) returned NULL\n");
+        return 0;
+    }
+
+    if(!GetConsoleMode(console, &mode))
+    {
+        fprintf(stderr, "GetConsoleMode(console, &mode) returned fales, GetLastError() = %d\n",
+            GetLastError());
+        return 0;
+    }
+
+    /* ENABLE_VIRTUAL_TERMINAL_PROCESSING, by value in case its missing from header... */
+    mode |= 0x0004;
+
+    if(!SetConsoleMode(console, mode))
+    {
+        fprintf(stderr, "SetConsoleMode(console, mode) returned fales, GetLastError() = %d\n",
+            GetLastError());
+        return 0;
+    }
+
+    return 1;
 }
 
 const unsigned kWhite = 0xffffff;
@@ -79,7 +109,11 @@ int main(int argc, char ** argv)
 {
     char buff[8 * 1024 + 5];
 
-    doit();
+    if(!eanbleConsoleColor())
+    {
+        /* todo: act like straight stdin>stdout cat here? */
+        return 1;
+    }
 
     /* todo: somehow handle if line is too long? print error? */
     while(readline(buff, 8 * 1024))
