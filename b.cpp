@@ -82,21 +82,25 @@ static int readline(char * buff, int len)
 
 int main(int argc, char ** argv)
 {
-    char buff[1024];
+    char buff[8 * 1024 + 5];
 
     doit();
 
-    while(readline(buff, 1000))
+    /* todo: somehow handle if line is too long? print error? */
+    while(readline(buff, 8 * 1024))
     {
+        const char * lastwordstart = buff;
+        const char * cur = buff;
+
         std::string str = buff;
         std::string sofar;
         for(const char c : str)
         {
-            if(std::isspace(c))
+            if(isspace((unsigned char)c))
             {
                 printColoredByHash(sofar);
                 sofar.clear();
-                std::cout << c;
+                fputc(c, stdout);
             }
             else
             {
@@ -105,6 +109,6 @@ int main(int argc, char ** argv)
         }//for
 
         printColoredByHash(sofar);
-        std::cout << std::endl;
+        fputc('\n', stdout);
     }//while
 }
