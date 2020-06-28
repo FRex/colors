@@ -103,7 +103,10 @@ static int readline(char * buff, int len)
         return 0;
 
     buff[0] = '\0'; /* to make sure we got 0 len str if we're about to hit eof */
-    fgets(buff, 1000, stdin);
+
+    /* fgets returns null if it hits eof before reading any chars too, try that too */
+    if(!fgets(buff, 1000, stdin))
+        return 0;
 
     /* this happens for files that do have newline at end of file too */
     if(strlen(buff) == 0 && feof(stdin))
