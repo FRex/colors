@@ -1,10 +1,10 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
-static void doit()
+static void doit(void)
 {
     //if color setting fails just act like cat does?
     //todo: error handling, reporting, etc.
@@ -33,11 +33,6 @@ static void setColor(unsigned rgb)
     printf("\033[38;2;%d;%d;%dm", r, g, b);
 }
 
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
-
 /* 32-bit fnv1, not 1a */
 static unsigned fnv(const char * str)
 {
@@ -52,11 +47,11 @@ static unsigned fnv(const char * str)
     return ret;
 }
 
-static void printColoredByHash(const std::string& str)
+static void printColoredByHash(const char * str)
 {
-    const int idx = fnv(str.c_str()) % kColorCount;
+    const int idx = fnv(str) % kColorCount;
     setColor(kColors[idx]);
-    std::cout << str;
+    fputs(str, stdout); /* not puts to not get a newline */
     setColor(kWhite); /* todo: save and restore original color if its not white? */
 }
 
@@ -90,25 +85,26 @@ int main(int argc, char ** argv)
     while(readline(buff, 8 * 1024))
     {
         const char * lastwordstart = buff;
-        const char * cur = buff;
+        char * cur = buff;
 
-        std::string str = buff;
-        std::string sofar;
-        for(const char c : str)
+        while(*cur)
         {
-            if(isspace((unsigned char)c))
+            if(isspace((unsigned char)*cur))
             {
-                printColoredByHash(sofar);
-                sofar.clear();
-                fputc(c, stdout);
+                const char c = *cur; /* save the space char */
+                *cur = '\0'; /* make word so far terminated by nul */
+                printColoredByHash(lastwordstart);
+                lastwordstart = cur + 1; /* next word starts at next char at least */
+                fputc(c, stdout); /* print the space char we hit and replaced */
             }
-            else
-            {
-                sofar.push_back(c);
-            }
-        }//for
 
-        printColoredByHash(sofar);
+            ++cur;
+        } /* while *cur */
+
+        /* print any leftover word */
+        printColoredByHash(lastwordstart);
         fputc('\n', stdout);
-    }//while
+    } /* while readline */
+
+    return 0;
 }
