@@ -1,11 +1,20 @@
 #include <stdio.h>
 #include <ctype.h>
 
+#ifdef _MSC_VER
+#define COLORS_ON_WINDOWS
+#endif
+
+#ifdef COLORS_ON_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#endif
 
 static int eanbleConsoleColor(void)
 {
+#ifndef COLORS_ON_WINDOWS
+    return 1; /* outside windows just assume it will work */
+#else
     HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode = 0u;
 
@@ -43,6 +52,7 @@ static int eanbleConsoleColor(void)
     }
 
     return 1;
+#endif /* COLORS_ON_WINDOWS */
 }
 
 const unsigned kWhite = 0xffffff;
