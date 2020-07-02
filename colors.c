@@ -96,7 +96,7 @@ static void printColoredByHash(const char * str)
     setColor(kWhite); /* todo: save and restore original color if its not white? */
 }
 
-static int mygetline(char * buff, int len)
+static int mygetline(char * buff, int len, int * toomuch)
 {
     /* for files without final newline last fgets read line without \n and set eof */
     if(feof(stdin))
@@ -114,26 +114,50 @@ static int mygetline(char * buff, int len)
 
     /* if we have a newline at end of line - remove it */
     if(strchr(buff, '\n'))
+    {
         *strchr(buff, '\n') = '\0';
+    }
+    else
+    {
+        /* if we have no newline and its not eof then its too long line */
+        if(!feof(stdin))
+            *toomuch = 1;
+    }
 
     return 1;
 }
 
+#define buffsize 8192
+
 int main(int argc, char ** argv)
 {
-    char buff[8 * 1024 + 5];
+    char buff[buffsize];
+    int toomuch;
 
-    if(!eanbleConsoleColor())
+    if(!eanbleConsoleColor()) /* todo: also check for tty output? */
     {
-        /* todo: act like straight stdin>stdout cat here? */
-        return 1;
-    }
+        while(fgets(buff, buffsize, stdin))
+            fputs(buff, stdout);
 
-    /* todo: somehow handle if line is too long? print error? */
-    while(mygetline(buff, 8 * 1024))
+        return 1;
+    } /* if not enable console color */
+
+    toomuch = 0;
+    while(mygetline(buff, buffsize, &toomuch))
     {
         const char * lastwordstart = buff;
         char * cur = buff;
+
+        if(toomuch)
+        {
+            /* todo: also print error in color if stderr is tty? */
+            fprintf(stderr, "warning: more than %d chars in line - degrading to plain cat\n", buffsize - 2);
+            fputs(buff, stdout);
+            while(fgets(buff, buffsize, stdin))
+                fputs(buff, stdout);
+
+            return 1;
+        } /* if too much */
 
         while(*cur)
         {
