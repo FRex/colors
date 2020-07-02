@@ -9,6 +9,7 @@
 #ifdef COLORS_ON_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <io.h>
 #endif
 
 static int eanbleConsoleColor(void)
@@ -18,6 +19,10 @@ static int eanbleConsoleColor(void)
 #else
     HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode = 0u;
+
+    /* using 'Console' winapi func fails if stdout isn't a tty/is redirected */
+    if(!_isatty(_fileno(stdout)))
+        return 0;
 
     if(console == INVALID_HANDLE_VALUE)
     {
@@ -134,7 +139,7 @@ int main(int argc, char ** argv)
     char buff[buffsize];
     int toomuch;
 
-    if(!eanbleConsoleColor()) /* todo: also check for tty output? */
+    if(!eanbleConsoleColor())
     {
         while(fgets(buff, buffsize, stdin))
             fputs(buff, stdout);
