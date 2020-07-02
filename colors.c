@@ -96,7 +96,7 @@ static void printColoredByHash(const char * str)
     setColor(kWhite); /* todo: save and restore original color if its not white? */
 }
 
-static int readline(char * buff, int len)
+static int mygetline(char * buff, int len)
 {
     /* for files without final newline last fgets read line without \n and set eof */
     if(feof(stdin))
@@ -105,7 +105,7 @@ static int readline(char * buff, int len)
     buff[0] = '\0'; /* to make sure we got 0 len str if we're about to hit eof */
 
     /* fgets returns null if it hits eof before reading any chars too, try that too */
-    if(!fgets(buff, 1000, stdin))
+    if(!fgets(buff, len, stdin))
         return 0;
 
     /* this happens for files that do have newline at end of file too */
@@ -130,7 +130,7 @@ int main(int argc, char ** argv)
     }
 
     /* todo: somehow handle if line is too long? print error? */
-    while(readline(buff, 8 * 1024))
+    while(mygetline(buff, 8 * 1024))
     {
         const char * lastwordstart = buff;
         char * cur = buff;
@@ -152,7 +152,7 @@ int main(int argc, char ** argv)
         /* print any leftover word */
         printColoredByHash(lastwordstart);
         fputc('\n', stdout);
-    } /* while readline */
+    } /* while mygetline */
 
     return 0;
 }
