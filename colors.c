@@ -20,9 +20,10 @@ static int eanbleConsoleColor(void)
     HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode = 0u;
 
-    /* using 'Console' winapi func fails if stdout isn't a tty/is redirected */
+    /* using 'Console' winapi func fails if stdout isn't a tty/is redirected so
+     * assume we just want to dump ANSI color sequnces to file in that case */
     if(!_isatty(_fileno(stdout)))
-        return 0;
+        return 1;
 
     if(console == INVALID_HANDLE_VALUE)
     {
