@@ -1,6 +1,5 @@
 #include <string.h>
 #include <stdio.h>
-#include <ctype.h>
 
 #ifdef _MSC_VER
 #define COLORS_ON_WINDOWS
@@ -137,6 +136,7 @@ static int mygetline(char * buff, int len, int * toomuch)
 
 int main(int argc, char ** argv)
 {
+    char * separators = " \f\n\r\t\v"; /* ascii */
     char buff[buffsize];
     int toomuch;
 
@@ -167,7 +167,7 @@ int main(int argc, char ** argv)
 
         while(*cur)
         {
-            if(isspace((unsigned char)*cur))
+            if(strchr(separators, *cur))
             {
                 const char c = *cur; /* save the space char */
                 *cur = '\0'; /* make word so far terminated by nul */
