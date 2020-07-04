@@ -132,13 +132,58 @@ static int mygetline(char * buff, int len, int * toomuch)
     return 1;
 }
 
+static int startswith(const char * s, const char * n)
+{
+    return 0 == strncmp(s, n, strlen(n));
+}
+
+/* set must have enough zeroed space after last nul to fit all new unique elems */
+static void addtoset(char * set, const char * newelements)
+{
+    while(*newelements)
+    {
+        if(!strchr(set, *newelements))
+            set[strlen(set)] = *newelements;
+
+        ++newelements;
+    } /* while */
+}
+
+static const char * basename(const char * fpath)
+{
+    const char * ret = fpath;
+
+    while(strchr(ret, '/'))
+        ret = strchr(ret, '/') + 1;
+
+    while(strchr(ret, '\\'))
+        ret = strchr(ret, '\\') + 1;
+
+    return ret;
+}
+
 #define buffsize 8192
 
 int main(int argc, char ** argv)
 {
-    char * separators = " \f\n\r\t\v"; /* ascii */
+    char separators[260]; /* the set of separators, no repetitions*/
     char buff[buffsize];
-    int toomuch;
+    int toomuch, i;
+
+    /* check if -h or --help is present */
+    for(i = 1; i < argc; ++i)
+    {
+        if(startswith(argv[i], "--help") || startswith(argv[i], "-h"))
+        {
+            const char * exename = basename(argv[0]);
+            printf("%s - pipe to color same words same random colors\n", exename);
+            printf("Help: %s -h or %s --help\n", exename, exename);
+            printf("Usage: %s [--addsep=chars]...\n", exename);
+            printf("    --addsep=chars - adds chars to list of word separators\n");
+            /* print all colors we have available here too? */
+            return 0;
+        }
+    }
 
     if(!eanbleConsoleColor())
     {
@@ -147,6 +192,17 @@ int main(int argc, char ** argv)
 
         return 1;
     } /* if not enable console color */
+
+    /* prepare the separators set */
+    memset(separators, 0x0, 260);
+    strcpy(separators, " \f\n\r\t\v");
+    for(i = 1; i < argc; ++i)
+    {
+        if(startswith(argv[i], "--addsep="))
+            addtoset(separators, argv[i] + strlen("--addsep="));
+        else
+            fprintf(stderr, "unknown option: %s", argv[i]);
+    }
 
     toomuch = 0;
     while(mygetline(buff, buffsize, &toomuch))
