@@ -162,6 +162,37 @@ static const char * basename(const char * fpath)
     return ret;
 }
 
+static int printhelp(const char * argv0)
+{
+    const char * exename = basename(argv0);
+    int i, ok;
+
+    printf("%s - pipe to color same words same random colors\n", exename);
+    printf("Help: %s -h or %s --help\n", exename, exename);
+    printf("Usage: %s [--addsep=chars]...\n", exename);
+    printf("    --addsep=chars - adds chars to list of word separators\n");
+
+    /* print colors in their color, if possible, else in default color */
+    ok = eanbleConsoleColor();
+    printf("Available colors (%s):\n", ok ? "in that color each" : "values only");
+    for(i = 0; i < kColorCount; ++i)
+    {
+        const int c = kColors[i];
+        if(ok)
+            setColor(c);
+
+        printf("#%06x rgb(%d, %d, %d)\n",
+            kColors[i],
+            (c >> 24) & 0xff, (c >> 16) & 0xff, (c >> 0) & 0xff
+        );
+    } /* for each color */
+
+    /* todo: reset to original/default here instead */
+    setColor(kWhite);
+
+    return 0;
+}
+
 #define buffsize 8192
 
 int main(int argc, char ** argv)
@@ -172,18 +203,8 @@ int main(int argc, char ** argv)
 
     /* check if -h or --help is present */
     for(i = 1; i < argc; ++i)
-    {
         if(startswith(argv[i], "--help") || startswith(argv[i], "-h"))
-        {
-            const char * exename = basename(argv[0]);
-            printf("%s - pipe to color same words same random colors\n", exename);
-            printf("Help: %s -h or %s --help\n", exename, exename);
-            printf("Usage: %s [--addsep=chars]...\n", exename);
-            printf("    --addsep=chars - adds chars to list of word separators\n");
-            /* print all colors we have available here too? */
-            return 0;
-        }
-    }
+            return printhelp(argv[0]);
 
     if(!eanbleConsoleColor())
     {
