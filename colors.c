@@ -141,15 +141,21 @@ static int startswith(const char * s, const char * n)
 }
 
 /* set must have enough zeroed space after last nul to fit all new unique elems */
-static void addtoset(char * set, const char * newelements)
+static int addtoset(char * set, const char * newelements)
 {
+    int ret = 0;
     while(*newelements)
     {
         if(!strchr(set, *newelements))
+        {
             set[strlen(set)] = *newelements;
+            ++ret;
+        } /* if not strchr */
 
         ++newelements;
     } /* while */
+
+    return ret;
 }
 
 static const char * basename(const char * fpath)
@@ -172,8 +178,9 @@ static int printhelp(const char * argv0)
 
     printf("%s - pipe to color same words same random colors\n", exename);
     printf("Help: %s -h or %s --help\n", exename, exename);
-    printf("Usage: %s [--addsep=chars]...\n", exename);
-    printf("    --addsep=chars - adds chars to list of word separators\n");
+    printf("Usage: %s [-v] [--verbose] [--addsep=chars]...\n", exename);
+    printf("    --addsep=chars   - adds chars to list of word separators\n");
+    printf("    --verbose or -v  - print internal and diagnostic info to stderr\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = eanbleConsoleColor();
@@ -194,13 +201,66 @@ static int printhelp(const char * argv0)
     return 0;
 }
 
+static int sameString(const char * a, const char * b)
+{
+    return 0 == strcmp(a, b);
+}
+
+static int isVerboseOption(const char * a)
+{
+    return sameString("-v", a) || sameString("--verbose", a);
+}
+
+static int hasVerboseOption(int argc, char ** argv)
+{
+    int i;
+    for(i = 1; i < argc; ++i)
+        if(isVerboseOption(argv[i]))
+            return 1;
+
+    return 0;
+}
+
+static void printEscaped(FILE * f, const char * str)
+{
+    while(*str)
+    {
+        switch(*str)
+        {
+        case '\n':
+            fputs("\\n", f);
+            break;
+        case '\v':
+            fputs("\\v", f);
+            break;
+        case '\t':
+            fputs("\\t", f);
+            break;
+        case '\r':
+            fputs("\\r", f);
+            break;
+        case '\f':
+            fputs("\\f", f);
+            break;
+        default:
+            if(' ' <= *str && *str <= '~')
+                fputc(*str, f);
+            else
+                fprintf(f, "\\x%x%x", (*str) >> 4, (*str) & 0xf);
+            break;
+        } /* switch */
+
+        ++str;
+    } /* while */
+}
+
 #define buffsize 8192
 
 int main(int argc, char ** argv)
 {
     char separators[260]; /* the set of separators, no repetitions*/
     char buff[buffsize];
-    int toomuch, i;
+    int toomuch, i, verbose;
 
     /* check if -h or --help is present */
     for(i = 1; i < argc; ++i)
@@ -215,13 +275,45 @@ int main(int argc, char ** argv)
         return 1;
     } /* if not enable console color */
 
+    verbose = hasVerboseOption(argc, argv);
+
     /* prepare the separators set */
     memset(separators, 0x0, 260);
     strcpy(separators, " \f\n\r\t\v");
+    if(verbose)
+    {
+        fprintf(stderr, "starting with separator set '");
+        printEscaped(stderr, separators);
+        fprintf(stderr, "'\n");
+    }
+
     for(i = 1; i < argc; ++i)
     {
+        if(isVerboseOption(argv[i]))
+            continue;
+
         if(startswith(argv[i], "--addsep="))
-            addtoset(separators, argv[i] + strlen("--addsep="));
+        {
+            const char * newchars = argv[i] + strlen("--addsep=");
+            int added;
+
+            if(verbose)
+            {
+                fprintf(stderr, "adding '");
+                printEscaped(stderr, newchars);
+                fprintf(stderr, "' to separator set '");
+                printEscaped(stderr, separators);
+                fprintf(stderr, "'");
+            } /* verbose */
+
+            added = addtoset(separators, newchars);
+            if(verbose)
+            {
+                fprintf(stderr, ", result is '");
+                printEscaped(stderr, separators);
+                fprintf(stderr, "' (%d chars added)\n", added);
+            }
+        }
         else
             fprintf(stderr, "unknown option: %s", argv[i]);
     }
