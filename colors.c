@@ -61,8 +61,6 @@ static int eanbleConsoleColor(void)
 #endif /* COLORS_ON_WINDOWS */
 }
 
-const unsigned kWhite = 0xffffff;
-
 const unsigned kColors[] = {
     0xffffff, 0xff0000, 0x00ff00, 0x7f0000,
     0x007f00, 0x00ffff, 0xff00ff, 0xffff00,
@@ -77,6 +75,11 @@ static void setColor(unsigned rgb)
     const int g = (rgb >> 8) & 0xff;
     const int b = (rgb >> 0) & 0xff;
     printf("\033[38;2;%d;%d;%dm", r, g, b);
+}
+
+static void resetColor(void)
+{
+    printf("\033[0m"); /* is this correct? */
 }
 
 /* 32-bit fnv1, not 1a */
@@ -98,7 +101,7 @@ static void printColoredByHash(const char * str)
     const int idx = fnv(str) % kColorCount;
     setColor(kColors[idx]);
     fputs(str, stdout); /* not puts to not get a newline */
-    setColor(kWhite); /* todo: save and restore original color if its not white? */
+    resetColor();
 }
 
 static int mygetline(char * buff, int len, int * toomuch)
@@ -187,9 +190,7 @@ static int printhelp(const char * argv0)
         );
     } /* for each color */
 
-    /* todo: reset to original/default here instead */
-    setColor(kWhite);
-
+    resetColor();
     return 0;
 }
 
