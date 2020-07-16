@@ -193,7 +193,7 @@ static int printhelp(const char * argv0)
 
         printf("#%06x rgb(%d, %d, %d)\n",
             kColors[i],
-            (c >> 24) & 0xff, (c >> 16) & 0xff, (c >> 0) & 0xff
+            (c >> 16) & 0xff, (c >> 8) & 0xff, (c >> 0) & 0xff
         );
     } /* for each color */
 
