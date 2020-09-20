@@ -242,6 +242,9 @@ static void printEscaped(FILE * f, const char * str)
         case '\f':
             fputs("\\f", f);
             break;
+        case '\\':
+            fputs("\\\\", f);
+            break;
         default:
             if(' ' <= *str && *str <= '~')
                 fputc(*str, f);
