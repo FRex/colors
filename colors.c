@@ -262,7 +262,8 @@ static void printEscaped(FILE * f, const char * str)
 
 int main(int argc, char ** argv)
 {
-    char separators[260]; /* the set of separators, no repetitions*/
+    char separatorset[260]; /* the set of separators, no repetitions*/
+    char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[buffsize];
     int toomuch, i, verbose;
 
@@ -282,12 +283,12 @@ int main(int argc, char ** argv)
     verbose = hasVerboseOption(argc, argv);
 
     /* prepare the separators set */
-    memset(separators, 0x0, 260);
-    strcpy(separators, " \f\n\r\t\v");
+    memset(separatorset, 0x0, 260);
+    strcpy(separatorset, " \f\n\r\t\v");
     if(verbose)
     {
         fprintf(stderr, "starting with separator set '");
-        printEscaped(stderr, separators);
+        printEscaped(stderr, separatorset);
         fprintf(stderr, "'\n");
     }
 
@@ -306,21 +307,26 @@ int main(int argc, char ** argv)
                 fprintf(stderr, "adding '");
                 printEscaped(stderr, newchars);
                 fprintf(stderr, "' to separator set '");
-                printEscaped(stderr, separators);
+                printEscaped(stderr, separatorset);
                 fprintf(stderr, "'");
             } /* verbose */
 
-            added = addtoset(separators, newchars);
+            added = addtoset(separatorset, newchars);
             if(verbose)
             {
                 fprintf(stderr, ", result is '");
-                printEscaped(stderr, separators);
+                printEscaped(stderr, separatorset);
                 fprintf(stderr, "' (%d chars added)\n", added);
             }
         }
         else
             fprintf(stderr, "unknown option: %s", argv[i]);
     }
+
+    /* prepare the separators table from set */
+    memset(indexedseparators, 0x0, 260);
+    for(i = 0; i < 256; ++i)
+        indexedseparators[i] = (NULL != strchr(separatorset, i));
 
     toomuch = 0;
     while(mygetline(buff, buffsize, &toomuch))
@@ -341,7 +347,7 @@ int main(int argc, char ** argv)
 
         while(*cur)
         {
-            if(strchr(separators, *cur))
+            if(indexedseparators[*cur])
             {
                 const char c = *cur; /* save the space char */
                 *cur = '\0'; /* make word so far terminated by nul */
