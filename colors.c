@@ -43,7 +43,7 @@ static int enableConsoleColor(void)
 
     if(!GetConsoleMode(console, &mode))
     {
-        fprintf(stderr, "GetConsoleMode(console, &mode) returned fales, GetLastError() = %d\n",
+        fprintf(stderr, "GetConsoleMode(console, &mode) returned false, GetLastError() = %u\n",
             GetLastError());
         return 0;
     }
@@ -53,7 +53,7 @@ static int enableConsoleColor(void)
 
     if(!SetConsoleMode(console, mode))
     {
-        fprintf(stderr, "SetConsoleMode(console, mode) returned fales, GetLastError() = %d\n",
+        fprintf(stderr, "SetConsoleMode(console, mode) returned false, GetLastError() = %u\n",
             GetLastError());
         return 0;
     }
