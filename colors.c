@@ -1,9 +1,10 @@
-#include <string.h>
-#include <stdio.h>
-
 #ifdef _MSC_VER
 #define COLORS_ON_WINDOWS
+#define _CRT_SECURE_NO_WARNINGS /* to allow using strcpy */
 #endif
+
+#include <string.h>
+#include <stdio.h>
 
 #ifdef COLORS_ON_WINDOWS
 #define WIN32_LEAN_AND_MEAN
