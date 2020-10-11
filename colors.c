@@ -11,7 +11,7 @@
 #include <io.h>
 #endif
 
-static int eanbleConsoleColor(void)
+static int enableConsoleColor(void)
 {
 #ifndef COLORS_ON_WINDOWS
     return 1; /* outside windows just assume it will work */
@@ -183,7 +183,7 @@ static int printhelp(const char * argv0)
     printf("    --verbose or -v  - print internal and diagnostic info to stderr\n");
 
     /* print colors in their color, if possible, else in default color */
-    ok = eanbleConsoleColor();
+    ok = enableConsoleColor();
     printf("Available colors (%s):\n", ok ? "in that color each" : "values only");
     for(i = 0; i < kColorCount; ++i)
     {
@@ -270,7 +270,7 @@ int main(int argc, char ** argv)
         if(startswith(argv[i], "--help") || startswith(argv[i], "-h"))
             return printhelp(argv[0]);
 
-    if(!eanbleConsoleColor())
+    if(!enableConsoleColor())
     {
         while(fgets(buff, buffsize, stdin))
             fputs(buff, stdout);
