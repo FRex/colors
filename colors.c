@@ -62,25 +62,28 @@ static int enableConsoleColor(void)
 #endif /* COLORS_ON_WINDOWS */
 }
 
-const unsigned kColors[] = {
-    0xffffff, 0xff0000, 0x00ff00, 0x7f0000,
-    0x007f00, 0x00ffff, 0xff00ff, 0xffff00,
-    0x007fff, 0x3fff3f, 0x007f3f, 0x7f7f00,
+const const char * kColors[] = {
+#define FORMAT_COLOR(r, g, b) "\033[38;2;"#r";"#g";"#b"m"
+    FORMAT_COLOR(255, 255, 255),
+    FORMAT_COLOR(255, 0, 0),
+    FORMAT_COLOR(0, 255, 0),
+    FORMAT_COLOR(127, 0, 0),
+    FORMAT_COLOR(0, 127, 0),
+    FORMAT_COLOR(0, 255, 255),
+    FORMAT_COLOR(255, 0, 255),
+    FORMAT_COLOR(255, 255, 0),
+    FORMAT_COLOR(0, 127, 255),
+    FORMAT_COLOR(63, 255, 63),
+    FORMAT_COLOR(0, 127, 63),
+    FORMAT_COLOR(127, 127, 0),
+#undef FORMAT_COLOR
 };
 
 const int kColorCount = sizeof(kColors) / sizeof(kColors[0]);
 
-static void setColor(unsigned rgb)
-{
-    const int r = (rgb >> 16) & 0xff;
-    const int g = (rgb >> 8) & 0xff;
-    const int b = (rgb >> 0) & 0xff;
-    printf("\033[38;2;%d;%d;%dm", r, g, b);
-}
-
 static void resetColor(void)
 {
-    printf("\033[0m"); /* is this correct? */
+    fputs("\033[0m", stdout); /* is this correct? */
 }
 
 /* 32-bit fnv1, not 1a */
@@ -100,7 +103,7 @@ static unsigned fnv(const char * str)
 static void printColoredByHash(const char * str)
 {
     const int idx = fnv(str) % kColorCount;
-    setColor(kColors[idx]);
+    fputs(kColors[idx], stdout);
     fputs(str, stdout); /* not puts to not get a newline */
     resetColor();
 }
@@ -185,17 +188,14 @@ static int printhelp(const char * argv0)
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
-    printf("Available colors (%s):\n", ok ? "in that color each" : "values only");
+    printf("Available color format strings (%s):\n", ok ? "in that color each" : "values only");
     for(i = 0; i < kColorCount; ++i)
     {
-        const int c = kColors[i];
+        const char * c = kColors[i];
         if(ok)
-            setColor(c);
+            fputs(c, stdout);
 
-        printf("#%06x rgb(%d, %d, %d)\n",
-            kColors[i],
-            (c >> 16) & 0xff, (c >> 8) & 0xff, (c >> 0) & 0xff
-        );
+        puts(c + 1); /* skip the ESC char to not interpret this as control sequence */
     } /* for each color */
 
     resetColor();

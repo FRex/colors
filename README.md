@@ -13,3 +13,8 @@ Run with `--addsep=chars` to add `chars` as extra word separators and with
 Go to releases for a 32-bit Windows exe (keep in mind 24-bit ANSI colors in
 console require quite a recent Windows 10 version:
 [link](https://devblogs.microsoft.com/commandline/24-bit-color-in-the-windows-console/)).
+
+For optimal performance (the above exe is from a niche C compiler and not
+optimized) you should compile it yourself with
+`gcc -O3 -march=native colors.c -o colors` or similar. Please let me know if it
+doesn't compile or doesn't work on your OS, Distro, GCC default settings, etc.
