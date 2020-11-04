@@ -62,7 +62,7 @@ static int enableConsoleColor(void)
 #endif /* COLORS_ON_WINDOWS */
 }
 
-const const char * kColors[] = {
+const char * const kColors[] = {
 #define FORMAT_COLOR(r, g, b) "\033[38;2;"#r";"#g";"#b"m"
     FORMAT_COLOR(255, 255, 255),
     FORMAT_COLOR(255, 0, 0),
