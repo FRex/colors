@@ -81,11 +81,6 @@ const char * const kColors[] = {
 
 const int kColorCount = sizeof(kColors) / sizeof(kColors[0]);
 
-static void resetColor(void)
-{
-    fputs("\033[0m", stdout); /* is this correct? */
-}
-
 /* 32-bit fnv1, not 1a */
 static unsigned fnv(const char * str)
 {
@@ -100,12 +95,28 @@ static unsigned fnv(const char * str)
     return ret;
 }
 
+#define COLOR_RESET_STRING "\033[0m"
+
 static void printColoredByHash(const char * str)
 {
+    char buff[1024];
     const int idx = fnv(str) % kColorCount;
-    fputs(kColors[idx], stdout);
-    fputs(str, stdout); /* not puts to not get a newline */
-    resetColor();
+
+    if(strlen(str) > 1000)
+    {
+        /* too long, print 3 times */
+        fputs(kColors[idx], stdout);
+        fputs(str, stdout); /* not puts to not get a newline */
+        fputs(COLOR_RESET_STRING, stdout);
+    }
+    else
+    {
+        /* prepare the word and color and reset, then print it out */
+        strcpy(buff, kColors[idx]);
+        strcat(buff, str);
+        strcat(buff, COLOR_RESET_STRING);
+        fputs(buff, stdout);
+    }
 }
 
 static int mygetline(char * buff, int len, int * toomuch)
@@ -198,7 +209,7 @@ static int printhelp(const char * argv0)
         puts(c + 1); /* skip the ESC char to not interpret this as control sequence */
     } /* for each color */
 
-    resetColor();
+    fputs(COLOR_RESET_STRING, stdout);
     return 0;
 }
 
