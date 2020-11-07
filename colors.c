@@ -102,6 +102,10 @@ static void printColoredByHash(const char * str)
     char buff[1024];
     const int idx = fnv(str) % kColorCount;
 
+    /* don't print color codes around empty string */
+    if(str[0] == '\0')
+        return;
+
     if(strlen(str) > 1000)
     {
         /* too long, print 3 times */
