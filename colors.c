@@ -280,7 +280,8 @@ int main(int argc, char ** argv)
     char separatorset[260]; /* the set of separators, no repetitions*/
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[buffsize];
-    int toomuch, i, verbose;
+    char separatorsbuff[buffsize];
+    int toomuch, i, verbose, separatorsbufflen;
 
     /* check if -h or --help is present */
     for(i = 1; i < argc; ++i)
@@ -360,21 +361,33 @@ int main(int argc, char ** argv)
             return 1;
         } /* if too much */
 
+        separatorsbufflen = 0;
         while(*cur)
         {
             if(indexedseparators[*cur])
             {
-                const char c = *cur; /* save the space char */
+                separatorsbuff[separatorsbufflen++] = *cur; /* save the space char */
                 *cur = '\0'; /* make word so far terminated by nul */
                 printColoredByHash(lastwordstart);
                 lastwordstart = cur + 1; /* next word starts at next char at least */
-                fputc(c, stdout); /* print the space char we hit and replaced */
+            }
+            else
+            {
+                separatorsbuff[separatorsbufflen] = '\0';
+                if(separatorsbufflen > 0)
+                    fputs(separatorsbuff, stdout);
+
+                separatorsbufflen = 0;
             }
 
             ++cur;
         } /* while *cur */
 
-        /* print any leftover word */
+        /* print any leftover word or separators (only one will be non-empty so order doesn't matter here) */
+        separatorsbuff[separatorsbufflen] = '\0';
+        if(separatorsbufflen > 0)
+            fputs(separatorsbuff, stdout);
+
         printColoredByHash(lastwordstart);
         fputc('\n', stdout);
     } /* while mygetline */
