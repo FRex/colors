@@ -310,7 +310,7 @@ int main(int argc, char ** argv)
         while(fgets(buff, buffsize, stdin))
             fputs(buff, stdout);
 
-        return 1;
+        return cat ? 0 : 1; /* return 0 if cat was requested, 1 if its error */
     } /* if not enable console color */
 
     verbose = hasVerboseOption(argc, argv);
