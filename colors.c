@@ -13,6 +13,15 @@
 #include <io.h>
 #endif
 
+static void ensureNoWindowsLineConversions(void)
+{
+#ifdef COLORS_ON_WINDOWS
+    _setmode(_fileno(stdin), _O_BINARY);
+    _setmode(_fileno(stdout), _O_BINARY);
+    _setmode(_fileno(stderr), _O_BINARY);
+#endif /* COLORS_ON_WINDOWS */
+}
+
 static int enableConsoleColor(void)
 {
 #ifndef COLORS_ON_WINDOWS
@@ -20,11 +29,6 @@ static int enableConsoleColor(void)
 #else
     HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode = 0u;
-
-    /* to avoid any \n <-> \n\r conversions */
-    _setmode(_fileno(stdin), _O_BINARY);
-    _setmode(_fileno(stdout), _O_BINARY);
-    _setmode(_fileno(stderr), _O_BINARY);
 
     /* using 'Console' winapi func fails if stdout isn't a tty/is redirected so
      * assume we just want to dump ANSI color sequnces to file in that case */
@@ -303,6 +307,9 @@ int main(int argc, char ** argv)
     char buff[buffsize];
     char separatorsbuff[buffsize];
     int toomuch, i, verbose, separatorsbufflen, cat;
+
+    /* enable binary stdin/stdout/stderr as soon as possible */
+    ensureNoWindowsLineConversions();
 
     /* check if -h or --help is present */
     for(i = 1; i < argc; ++i)
