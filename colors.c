@@ -72,8 +72,39 @@ static int enableConsoleColor(void)
 #endif /* COLORS_ON_WINDOWS */
 }
 
-const char * const kColors[] = {
-#define FORMAT_COLOR(r, g, b) "\033[38;2;"#r";"#g";"#b"m"
+/* linebuffsize must be bigger than mybuffsize to not allow words bigger than
+   mybuffsize because that would make mybuff_add do a buffer overwrite */
+#define mybuffsize 4096
+#define linebuffsize (2 * mybuffsize)
+
+typedef struct mybuff {
+    int usage;
+    char data[mybuffsize];
+} mybuff;
+
+static void mybuff_flush(mybuff * self)
+{
+    fwrite(self->data, 1, self->usage, stdout);
+    self->usage = 0;
+}
+
+static void mybuff_add(mybuff * self, const char * data, int datalen)
+{
+    if(self->usage + datalen > mybuffsize)
+        mybuff_flush(self);
+
+    memcpy(self->data + self->usage, data, datalen);
+    self->usage += datalen;
+}
+
+typedef struct mystring {
+    const char * string;
+    int length;
+} mystring;
+
+const mystring kColors[] = {
+#define FORMAT_COLOR_HELPER(literal) {literal, sizeof(literal) - 1}
+#define FORMAT_COLOR(r, g, b) FORMAT_COLOR_HELPER("\033[38;2;"#r";"#g";"#b"m")
     FORMAT_COLOR(255, 255, 255),
     FORMAT_COLOR(255, 0, 0),
     FORMAT_COLOR(0, 255, 0),
@@ -87,6 +118,7 @@ const char * const kColors[] = {
     FORMAT_COLOR(0, 127, 63),
     FORMAT_COLOR(127, 127, 0),
 #undef FORMAT_COLOR
+#undef FORMAT_COLOR_HELPER
 };
 
 const int kColorCount = sizeof(kColors) / sizeof(kColors[0]);
@@ -106,31 +138,19 @@ static unsigned fnv(const char * str)
 }
 
 #define COLOR_RESET_STRING "\033[0m"
+#define COLOR_RESET_STRING_LENGTH (sizeof(COLOR_RESET_STRING) - 1)
 
-static void printColoredByHash(const char * str)
+static void printColoredByHash(mybuff * outbuff, const char * str, int length)
 {
-    char buff[1024];
     const int idx = fnv(str) % kColorCount;
 
     /* don't print color codes around empty string */
     if(str[0] == '\0')
         return;
 
-    if(strlen(str) > 1000)
-    {
-        /* too long, print 3 times */
-        fputs(kColors[idx], stdout);
-        fputs(str, stdout); /* not puts to not get a newline */
-        fputs(COLOR_RESET_STRING, stdout);
-    }
-    else
-    {
-        /* prepare the word and color and reset, then print it out */
-        strcpy(buff, kColors[idx]);
-        strcat(buff, str);
-        strcat(buff, COLOR_RESET_STRING);
-        fputs(buff, stdout);
-    }
+    mybuff_add(outbuff, kColors[idx].string, kColors[idx].length);
+    mybuff_add(outbuff, str, length);
+    mybuff_add(outbuff, COLOR_RESET_STRING, COLOR_RESET_STRING_LENGTH);
 }
 
 static int mygetline(char * buff, int len, int * toomuch)
@@ -216,7 +236,7 @@ static int printhelp(const char * argv0)
     printf("Available color format strings (%s):\n", ok ? "in that color each" : "values only");
     for(i = 0; i < kColorCount; ++i)
     {
-        const char * c = kColors[i];
+        const char * c = kColors[i].string;
         if(ok)
             fputs(c, stdout);
 
@@ -298,15 +318,14 @@ static void printEscaped(FILE * f, const char * str)
     } /* while */
 }
 
-#define buffsize 8192
-
 int main(int argc, char ** argv)
 {
     char separatorset[260]; /* the set of separators, no repetitions*/
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
-    char buff[buffsize];
-    char separatorsbuff[buffsize];
+    char buff[linebuffsize];
+    char separatorsbuff[linebuffsize];
     int toomuch, i, verbose, separatorsbufflen, cat;
+    mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
     ensureNoWindowsLineConversions();
@@ -320,7 +339,7 @@ int main(int argc, char ** argv)
     cat = hasCatOption(argc, argv);
     if(cat || !enableConsoleColor())
     {
-        while(fgets(buff, buffsize, stdin))
+        while(fgets(buff, linebuffsize, stdin))
             fputs(buff, stdout);
 
         return cat ? 0 : 1; /* return 0 if cat was requested, 1 if its error */
@@ -375,17 +394,18 @@ int main(int argc, char ** argv)
         indexedseparators[i] = (NULL != strchr(separatorset, i));
 
     toomuch = 0;
-    while(mygetline(buff, buffsize, &toomuch))
+    while(mygetline(buff, linebuffsize, &toomuch))
     {
         const char * lastwordstart = buff;
         char * cur = buff;
 
+        outbuff.usage = 0;
         if(toomuch)
         {
             /* todo: also print error in color if stderr is tty? */
-            fprintf(stderr, "warning: more than %d chars in line - degrading to plain cat\n", buffsize - 2);
+            fprintf(stderr, "warning: more than %d chars in line - degrading to plain cat\n", linebuffsize - 2);
             fputs(buff, stdout);
-            while(fgets(buff, buffsize, stdin))
+            while(fgets(buff, linebuffsize, stdin))
                 fputs(buff, stdout);
 
             return 1;
@@ -398,14 +418,14 @@ int main(int argc, char ** argv)
             {
                 separatorsbuff[separatorsbufflen++] = *cur; /* save the space char */
                 *cur = '\0'; /* make word so far terminated by nul */
-                printColoredByHash(lastwordstart);
+                printColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
                 lastwordstart = cur + 1; /* next word starts at next char at least */
             }
             else
             {
                 separatorsbuff[separatorsbufflen] = '\0';
                 if(separatorsbufflen > 0)
-                    fputs(separatorsbuff, stdout);
+                    mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
 
                 separatorsbufflen = 0;
             }
@@ -416,10 +436,11 @@ int main(int argc, char ** argv)
         /* print any leftover word or separators (only one will be non-empty so order doesn't matter here) */
         separatorsbuff[separatorsbufflen] = '\0';
         if(separatorsbufflen > 0)
-            fputs(separatorsbuff, stdout);
+            mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
 
-        printColoredByHash(lastwordstart);
-        fputc('\n', stdout);
+        printColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
+        mybuff_add(&outbuff, "\n", 1);
+        mybuff_flush(&outbuff);
     } /* while mygetline */
 
     return 0;
