@@ -8,7 +8,8 @@ same words in the output. E.g. to see potentially same values of some hash,
 ![screenshot](screenshot.png)
 
 Run with `--addsep=chars` to add `chars` as extra word separators and with
-`-h` or `--help` to see help.
+`-h` or `--help` to see help. With `--cat` it acts like `cat` (I use this for
+benchmarking - this mode is the ideal and coloring is slower due to overhead).
 
 Go to releases for a 32-bit Windows exe (keep in mind 24-bit ANSI colors in
 console require quite a recent Windows 10 version:

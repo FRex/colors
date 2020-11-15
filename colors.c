@@ -237,6 +237,21 @@ static int hasVerboseOption(int argc, char ** argv)
     return 0;
 }
 
+static int isCatOption(const char * a)
+{
+    return sameString(a, "--cat");
+}
+
+static int hasCatOption(int argc, char ** argv)
+{
+    int i;
+    for(i = 1; i < argc; ++i)
+        if(isCatOption(argv[i]))
+            return 1;
+
+    return 0;
+}
+
 static void printEscaped(FILE * f, const char * str)
 {
     while(*str)
@@ -281,14 +296,16 @@ int main(int argc, char ** argv)
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[buffsize];
     char separatorsbuff[buffsize];
-    int toomuch, i, verbose, separatorsbufflen;
+    int toomuch, i, verbose, separatorsbufflen, cat;
 
     /* check if -h or --help is present */
     for(i = 1; i < argc; ++i)
         if(startswith(argv[i], "--help") || startswith(argv[i], "-h"))
             return printhelp(argv[0]);
 
-    if(!enableConsoleColor())
+    /* do the cat option first, before even trying to enable console color */
+    cat = hasCatOption(argc, argv);
+    if(cat || !enableConsoleColor())
     {
         while(fgets(buff, buffsize, stdin))
             fputs(buff, stdout);
@@ -310,7 +327,7 @@ int main(int argc, char ** argv)
 
     for(i = 1; i < argc; ++i)
     {
-        if(isVerboseOption(argv[i]))
+        if(isVerboseOption(argv[i]) || isCatOption(argv[i]))
             continue;
 
         if(startswith(argv[i], "--addsep="))
