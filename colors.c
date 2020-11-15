@@ -9,6 +9,7 @@
 #ifdef COLORS_ON_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <fcntl.h>
 #include <io.h>
 #endif
 
@@ -19,6 +20,11 @@ static int enableConsoleColor(void)
 #else
     HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode = 0u;
+
+    /* to avoid any \n <-> \n\r conversions */
+    _setmode(_fileno(stdin), _O_BINARY);
+    _setmode(_fileno(stdout), _O_BINARY);
+    _setmode(_fileno(stderr), _O_BINARY);
 
     /* using 'Console' winapi func fails if stdout isn't a tty/is redirected so
      * assume we just want to dump ANSI color sequnces to file in that case */
