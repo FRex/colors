@@ -40,7 +40,7 @@ static int enableConsoleColor(void)
         fprintf(
             stderr,
             "GetStdHandle(STD_OUTPUT_HANDLE) returned INVALID_HANDLE_VALUE, GetLastError() = %u\n",
-            GetLastError()
+            (unsigned)GetLastError()
         );
         return 0;
     }
@@ -54,7 +54,7 @@ static int enableConsoleColor(void)
     if(!GetConsoleMode(console, &mode))
     {
         fprintf(stderr, "GetConsoleMode(console, &mode) returned false, GetLastError() = %u\n",
-            GetLastError());
+            (unsigned)GetLastError());
         return 0;
     }
 
@@ -64,7 +64,7 @@ static int enableConsoleColor(void)
     if(!SetConsoleMode(console, mode))
     {
         fprintf(stderr, "SetConsoleMode(console, mode) returned false, GetLastError() = %u\n",
-            GetLastError());
+            (unsigned)GetLastError());
         return 0;
     }
 
