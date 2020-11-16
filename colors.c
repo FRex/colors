@@ -414,7 +414,7 @@ int main(int argc, char ** argv)
         separatorsbufflen = 0;
         while(*cur)
         {
-            if(indexedseparators[*cur])
+            if(indexedseparators[(unsigned char)*cur])
             {
                 separatorsbuff[separatorsbufflen++] = *cur; /* save the space char */
                 *cur = '\0'; /* make word so far terminated by nul */
