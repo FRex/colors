@@ -24,10 +24,10 @@ Please let me know if it doesn't compile or work on your terminal, OS, Distro,
 GCC default settings, etc. or if you find any bugs or have any improvement ideas.
 
 Speed should not be an issue ever since these commits were made:
-1. 45869c10e3dbb38fa15330ac6f98e3e91c0dd78d
-2. 8a6bffbee8e9e9e2af318d61dd44ef0679dfe510
-3. 9965d6e146611da73d17a1aacfc2c3c9c4c73767
-4. d77de798c443efa010a7c3d1627233944fb3d9ab
+1. https://github.com/FRex/colors/commit/45869c10e3dbb38fa15330ac6f98e3e91c0dd78d
+2. https://github.com/FRex/colors/commit/8a6bffbee8e9e9e2af318d61dd44ef0679dfe510
+3. https://github.com/FRex/colors/commit/9965d6e146611da73d17a1aacfc2c3c9c4c73767
+4. https://github.com/FRex/colors/commit/d77de798c443efa010a7c3d1627233944fb3d9ab
 
 It's about 15-20x slower than GNU cat on my laptop, but it always does line
 buffering, is written in portable C, and adds colors, so that's plenty fast
