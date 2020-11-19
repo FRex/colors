@@ -31,7 +31,7 @@ static int enableConsoleColor(void)
     DWORD mode = 0u;
 
     /* using 'Console' winapi func fails if stdout isn't a tty/is redirected so
-     * assume we just want to dump ANSI color sequnces to file in that case */
+     * assume we just want to dump ANSI color sequences to file in that case */
     if(!_isatty(_fileno(stdout)))
         return 1;
 
