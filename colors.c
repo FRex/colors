@@ -240,10 +240,13 @@ static int printhelp(const char * argv0)
         if(ok)
             fputs(c, stdout);
 
-        puts(c + 1); /* skip the ESC char to not interpret this as control sequence */
+        fputs(c + 1, stdout); /* skip the ESC char to not interpret this as control sequence */
+        if(ok)
+            fputs(COLOR_RESET_STRING, stdout);
+
+        putc('\n', stdout);
     } /* for each color */
 
-    fputs(COLOR_RESET_STRING, stdout);
     return 0;
 }
 
