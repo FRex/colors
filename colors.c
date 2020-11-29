@@ -124,13 +124,14 @@ const mystring kColors[] = {
 const int kColorCount = sizeof(kColors) / sizeof(kColors[0]);
 
 /* 32-bit fnv1, not 1a */
-static unsigned fnv(const char * str)
+static unsigned fnv(const char * str, int length)
 {
     unsigned ret = 2166136261u;
-    while(*str)
+    while(length > 0)
     {
         ret ^= (unsigned char)(*str);
         ret *= 16777619u;
+        --length;
         ++str;
     } /* while *str */
 
@@ -140,9 +141,9 @@ static unsigned fnv(const char * str)
 #define COLOR_RESET_STRING "\033[0m"
 #define COLOR_RESET_STRING_LENGTH (sizeof(COLOR_RESET_STRING) - 1)
 
-static void printColoredByHash(mybuff * outbuff, const char * str, int length)
+static void addColoredByHash(mybuff * outbuff, const char * str, int length)
 {
-    const int idx = fnv(str) % kColorCount;
+    const int idx = fnv(str, length) % kColorCount;
 
     /* don't print color codes around empty string */
     if(str[0] == '\0')
@@ -327,7 +328,7 @@ int main(int argc, char ** argv)
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[linebuffsize];
     char separatorsbuff[linebuffsize];
-    int toomuch, i, verbose, separatorsbufflen, cat;
+    int toomuch, i, verbose, separatorsbufflen, cat, wordlen;
     mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
@@ -360,6 +361,7 @@ int main(int argc, char ** argv)
         fprintf(stderr, "'\n");
     }
 
+    wordlen = 0;
     for(i = 1; i < argc; ++i)
     {
         if(isVerboseOption(argv[i]) || isCatOption(argv[i]))
@@ -386,9 +388,34 @@ int main(int argc, char ** argv)
                 printEscaped(stderr, separatorset);
                 fprintf(stderr, "' (%d chars added)\n", added);
             }
-        }
-        else
-            fprintf(stderr, "unknown option: %s", argv[i]);
+
+            continue;
+        } /* if --addsep */
+
+        if(startswith(argv[i], "--wordlen="))
+        {
+            const char * argnum = argv[i] + strlen("--wordlen=");
+            if(strlen(argnum) > 4)
+            {
+                fprintf(stderr, "max 4 digits for --wordlen=\n");
+                continue;
+            }
+
+            wordlen = atoi(argnum);
+            if(wordlen <= 0)
+            {
+                fprintf(stderr, "argument for --wordlen= must be positive, '%s' evaluated to %d\n", argnum, wordlen);
+                wordlen = 0;
+                continue;
+            }
+
+            if(verbose)
+                fprintf(stderr, "wordlen successfully set to %d\n", wordlen);
+
+            continue;
+        } /* if --wordlen= */
+
+        fprintf(stderr, "unknown option: %s\n", argv[i]);
     }
 
     /* prepare the separators table from set */
@@ -417,11 +444,17 @@ int main(int argc, char ** argv)
         separatorsbufflen = 0;
         while(*cur)
         {
+            if(wordlen > 0 && (int)(cur - lastwordstart) == wordlen)
+            {
+                addColoredByHash(&outbuff, lastwordstart, wordlen);
+                lastwordstart += wordlen;
+            }
+
             if(indexedseparators[(unsigned char)*cur])
             {
                 separatorsbuff[separatorsbufflen++] = *cur; /* save the space char */
                 *cur = '\0'; /* make word so far terminated by nul */
-                printColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
+                addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
                 lastwordstart = cur + 1; /* next word starts at next char at least */
             }
             else
@@ -441,7 +474,7 @@ int main(int argc, char ** argv)
         if(separatorsbufflen > 0)
             mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
 
-        printColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
+        addColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
         mybuff_add(&outbuff, "\n", 1);
         mybuff_flush(&outbuff);
     } /* while mygetline */

@@ -10,6 +10,10 @@ same words in the output. E.g. to see potentially same values of some hash,
 Run with `--addsep=chars` to add `chars` as extra word separators and with
 `-h` or `--help` to see help. With `--cat` it acts like `cat` (I use this for
 benchmarking - this mode is the ideal and coloring is slower due to overhead).
+Option `--wordlen=x` where x is a positive number will split words into parts
+of that length at most, to make it clear in case there is many long words that
+get colored the same (in that case with this option each long word will have
+few colors which will reduce the chance of 100% color collision).
 
 Go to releases to find:
 1. Unotptimized 32-bit Windows exe built with Pelles C (a niche C
