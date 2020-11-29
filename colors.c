@@ -3,6 +3,7 @@
 #define _CRT_SECURE_NO_WARNINGS /* to allow using strcpy */
 #endif
 
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
