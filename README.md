@@ -13,7 +13,10 @@ benchmarking - this mode is the ideal and coloring is slower due to overhead).
 Option `--wordlen=x` where x is a positive number will split words into parts
 of that length at most, to make it clear in case there is many long words that
 get colored the same (in that case with this option each long word will have
-few colors which will reduce the chance of 100% color collision).
+few colors which will reduce the chance of 100% color collision). It's somewhat
+UTF-8 aware - it counts bytes, not codepoints, but it will not break encoding
+sequence of a single codepoint in two (so if the threshold is reached
+mid-codepoint it will continue taking codeunits until that codepoint ends).
 
 Go to releases to find:
 1. Unotptimized 32-bit Windows exe built with Pelles C (a niche C

@@ -323,6 +323,12 @@ static void printEscaped(FILE * f, const char * str)
     } /* while */
 }
 
+static int isUtf8ContinuationByte(unsigned char c)
+{
+    /* detect 10xxxxxx - get the top two bits then check they are 1 and 0 */
+    return (c & (3 << 6)) == (2 << 6);
+}
+
 int main(int argc, char ** argv)
 {
     char separatorset[260]; /* the set of separators, no repetitions*/
@@ -445,10 +451,16 @@ int main(int argc, char ** argv)
         separatorsbufflen = 0;
         while(*cur)
         {
-            if(wordlen > 0 && (int)(cur - lastwordstart) == wordlen)
+            /* if we hit a non-continuation byte it means (assuming valid UTF-8
+               input) that we just ended some codepoint's encoding, so we can
+               flush the word out if it's long enough, flushing at just == wordlen
+               would result in in invalid UTF-8 output and totally break the text
+               no need to check separator first, if it was a separator char we'd
+               flush the word anyway, and if not then it'd run this exact check */
+            if(wordlen > 0 && (int)(cur - lastwordstart) >= wordlen && !isUtf8ContinuationByte(*cur))
             {
-                addColoredByHash(&outbuff, lastwordstart, wordlen);
-                lastwordstart += wordlen;
+                addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
+                lastwordstart = cur;
             }
 
             if(indexedseparators[(unsigned char)*cur])
