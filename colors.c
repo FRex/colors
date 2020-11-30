@@ -232,6 +232,7 @@ static int printhelp(const char * argv0)
     printf("Usage: %s [-v] [--verbose] [--addsep=chars]...\n", exename);
     printf("    --addsep=chars   - adds chars to list of word separators\n");
     printf("    --verbose or -v  - print internal and diagnostic info to stderr\n");
+    printf("    --wordlen=NUM    - limit words to NUM bytes but keep UTF-8 intact\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
