@@ -134,7 +134,7 @@ static unsigned fnv(const char * str, int length)
         ret *= 16777619u;
         --length;
         ++str;
-    } /* while *str */
+    } /* while length > 0 */
 
     return ret;
 }
