@@ -124,7 +124,7 @@ const mystring kColors[] = {
 
 const int kColorCount = sizeof(kColors) / sizeof(kColors[0]);
 
-/* 32-bit fnv1, not 1a */
+/* 32-bit fnv1a */
 static unsigned fnv(const char * str, int length)
 {
     unsigned ret = 2166136261u;
