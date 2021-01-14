@@ -491,6 +491,7 @@ int main(int argc, char ** argv)
         addColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
         mybuff_add(&outbuff, "\n", 1);
         mybuff_flush(&outbuff);
+        fflush(stdout); /* to make sure even with pipes or redirections the lines appear as soon as possible */
     } /* while mygetline */
 
     return 0;
