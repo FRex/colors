@@ -233,6 +233,8 @@ static int printhelp(const char * argv0)
     printf("    --addsep=chars   - adds chars to list of word separators\n");
     printf("    --verbose or -v  - print internal and diagnostic info to stderr\n");
     printf("    --wordlen=NUM    - limit words to NUM bytes but keep UTF-8 intact\n");
+    printf("    --no-flush       - don't flush the stdout after each line\n");
+    printf("    --noflush        - alias for --no-flush\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
@@ -261,6 +263,11 @@ static int sameString(const char * a, const char * b)
 static int isVerboseOption(const char * a)
 {
     return sameString("-v", a) || sameString("--verbose", a);
+}
+
+static int isNoflushOption(const char * a)
+{
+    return sameString("--no-flush", a) || sameString("--noflush", a);
 }
 
 static int hasVerboseOption(int argc, char ** argv)
@@ -336,7 +343,7 @@ int main(int argc, char ** argv)
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[linebuffsize];
     char separatorsbuff[linebuffsize];
-    int toomuch, i, verbose, separatorsbufflen, cat, wordlen;
+    int toomuch, i, verbose, separatorsbufflen, cat, wordlen, noflush;
     mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
@@ -370,10 +377,17 @@ int main(int argc, char ** argv)
     }
 
     wordlen = 0;
+    noflush = 0;
     for(i = 1; i < argc; ++i)
     {
         if(isVerboseOption(argv[i]) || isCatOption(argv[i]))
             continue;
+
+        if(isNoflushOption(argv[i]))
+        {
+            noflush = 1;
+            continue;
+        }
 
         if(startswith(argv[i], "--addsep="))
         {
@@ -491,7 +505,9 @@ int main(int argc, char ** argv)
         addColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
         mybuff_add(&outbuff, "\n", 1);
         mybuff_flush(&outbuff);
-        fflush(stdout); /* to make sure even with pipes or redirections the lines appear as soon as possible */
+
+        if(!noflush)
+            fflush(stdout); /* to make sure even with pipes or redirections the lines appear as soon as possible */
     } /* while mygetline */
 
     return 0;
