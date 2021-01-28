@@ -445,13 +445,14 @@ int main(int argc, char ** argv)
     for(i = 0; i < 256; ++i)
         indexedseparators[i] = (NULL != strchr(separatorset, i));
 
+    /* set to 0 here and not in loop body to buffer more than 1 line in no flush mode */
+    outbuff.usage = 0;
     toomuch = 0;
     while(mygetline(buff, linebuffsize, &toomuch))
     {
         const char * lastwordstart = buff;
         char * cur = buff;
 
-        outbuff.usage = 0;
         if(toomuch)
         {
             /* todo: also print error in color if stderr is tty? */
@@ -504,11 +505,17 @@ int main(int argc, char ** argv)
 
         addColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
         mybuff_add(&outbuff, "\n", 1);
-        mybuff_flush(&outbuff);
 
         if(!noflush)
+        {
+            mybuff_flush(&outbuff); /* buffer more than one line in noflush mode */
             fflush(stdout); /* to make sure even with pipes or redirections the lines appear as soon as possible */
+        }
     } /* while mygetline */
+
+    /* make sure to flush buffered output at the end - matters for no flush mode */
+    mybuff_flush(&outbuff);
+    fflush(stdout);
 
     return 0;
 }
