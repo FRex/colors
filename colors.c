@@ -73,10 +73,10 @@ static int enableConsoleColor(void)
 #endif /* COLORS_ON_WINDOWS */
 }
 
-/* linebuffsize must be bigger than mybuffsize to not allow words bigger than
-   mybuffsize because that would make mybuff_add do a buffer overwrite */
-#define mybuffsize 4096
-#define linebuffsize (2 * mybuffsize)
+/* linebuffsize must be smaller than mybuffsize to not process words bigger than
+   mybuffsize because that would make mybuff_add write past the end of its buffer */
+#define linebuffsize (4096)
+#define mybuffsize (3 * (linebuffsize))
 
 typedef struct mybuff {
     int usage;
