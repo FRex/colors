@@ -389,6 +389,13 @@ int main(int argc, char ** argv)
             continue;
         }
 
+        /* catch --addsep option with no value or even no = */
+        if(sameString(argv[i], "--addsep") || sameString(argv[i], "--addsep="))
+        {
+            fprintf(stderr, "--addsep argument requires a separators after =\n");
+            continue;
+        }
+
         if(startswith(argv[i], "--addsep="))
         {
             const char * newchars = argv[i] + strlen("--addsep=");
