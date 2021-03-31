@@ -414,6 +414,13 @@ int main(int argc, char ** argv)
             continue;
         } /* if --addsep */
 
+        /* catch --wordlen option with no value or even no = */
+        if(sameString(argv[i], "--wordlen") || sameString(argv[i], "--wordlen="))
+        {
+            fprintf(stderr, "--wordlen argument requires a number value after =\n");
+            continue;
+        }
+
         if(startswith(argv[i], "--wordlen="))
         {
             const char * argnum = argv[i] + strlen("--wordlen=");
