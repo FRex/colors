@@ -144,12 +144,13 @@ static unsigned fnv(const char * str, int length)
 
 static void addColoredByHash(mybuff * outbuff, const char * str, int length)
 {
-    const int idx = fnv(str, length) % kColorCount;
+    int idx;
 
     /* don't print color codes around empty string */
-    if(str[0] == '\0')
+    if(length == 0)
         return;
 
+    idx = fnv(str, length) % kColorCount;
     mybuff_add(outbuff, kColors[idx].string, kColors[idx].length);
     mybuff_add(outbuff, str, length);
     mybuff_add(outbuff, COLOR_RESET_STRING, COLOR_RESET_STRING_LENGTH);
@@ -496,7 +497,6 @@ int main(int argc, char ** argv)
             if(indexedseparators[(unsigned char)*cur])
             {
                 separatorsbuff[separatorsbufflen++] = *cur; /* save the space char */
-                *cur = '\0'; /* make word so far terminated by nul */
                 addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
                 lastwordstart = cur + 1; /* next word starts at next char at least */
             }
