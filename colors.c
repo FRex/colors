@@ -179,6 +179,7 @@ static int mygetline(char * buff, int len, int * toomuch)
 
     /* newline is treated as a normal separator and written out so keep it */
     /* if entire buff is full and last char is not newline and its not eof then the line is too long */
+    /* NOTE: this assumes fgets doesnt modify characters past nul term it wrote */
     if(buff[len - 1] != '@' && buff[len - 2] != '\n' && !feof(stdin))
         *toomuch = 1;
 
