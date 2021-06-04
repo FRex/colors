@@ -91,6 +91,9 @@ static void mybuff_flush(mybuff * self)
 
 static void mybuff_add(mybuff * self, const char * data, int datalen)
 {
+    if(datalen == 0)
+        return;
+
     if(self->usage + datalen > mybuffsize)
         mybuff_flush(self);
 
@@ -463,6 +466,11 @@ int main(int argc, char ** argv)
     /* set to 0 here and not in loop body to buffer more than 1 line in no flush mode */
     outbuff.usage = 0;
     toomuch = 0;
+
+    /* set wordlen to a huge value if its not used, so curwordlen > wordlen never passes, no need to first do worlden > 0 */
+    if(wordlen == 0)
+        wordlen = 1 << 30;
+
     while(mygetline(buff, linebuffsize, &toomuch))
     {
         const char * lastwordstart = buff;
@@ -488,7 +496,7 @@ int main(int argc, char ** argv)
                would result in in invalid UTF-8 output and totally break the text
                no need to check separator first, if it was a separator char we'd
                flush the word anyway, and if not then it'd run this exact check */
-            if(wordlen > 0 && (int)(cur - lastwordstart) >= wordlen && !isUtf8ContinuationByte(*cur))
+            if((int)(cur - lastwordstart) >= wordlen && !isUtf8ContinuationByte(*cur))
             {
                 addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
                 lastwordstart = cur;
@@ -502,10 +510,7 @@ int main(int argc, char ** argv)
             }
             else
             {
-                separatorsbuff[separatorsbufflen] = '\0';
-                if(separatorsbufflen > 0)
-                    mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
-
+                mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
                 separatorsbufflen = 0;
             }
 
@@ -513,10 +518,7 @@ int main(int argc, char ** argv)
         } /* while *cur */
 
         /* print any leftover word or separators (only one will be non-empty so order doesn't matter here) */
-        separatorsbuff[separatorsbufflen] = '\0';
-        if(separatorsbufflen > 0)
-            mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
-
+        mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
         addColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
         mybuff_add(&outbuff, "\n", 1);
 
