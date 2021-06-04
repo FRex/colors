@@ -166,6 +166,7 @@ static int mygetline(char * buff, int len, int * toomuch)
         return 0;
 
     buff[0] = '\0'; /* to make sure we got 0 len str if we're about to hit eof */
+    buff[len - 1] = '@'; /* nul term goes here if the line takes entire buffer */
 
     /* fgets returns null if it hits eof before reading any chars too, try that too */
     if(!fgets(buff, len, stdin))
@@ -176,17 +177,10 @@ static int mygetline(char * buff, int len, int * toomuch)
     if(buff[0] == '\0' && feof(stdin))
         return 0;
 
-    /* if we have a newline at end of line - remove it */
-    if(strchr(buff, '\n'))
-    {
-        *strchr(buff, '\n') = '\0';
-    }
-    else
-    {
-        /* if we have no newline and its not eof then its too long line */
-        if(!feof(stdin))
-            *toomuch = 1;
-    }
+    /* newline is treated as a normal separator and written out so keep it */
+    /* if entire buff is full and last char is not newline and its not eof then the line is too long */
+    if(buff[len - 1] != '@' && buff[len - 2] != '\n' && !feof(stdin))
+        *toomuch = 1;
 
     return 1;
 }
@@ -521,7 +515,6 @@ int main(int argc, char ** argv)
         /* print any leftover word or separators (only one will be non-empty so order doesn't matter here) */
         mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
         addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
-        mybuff_add(&outbuff, "\n", 1);
 
         if(!noflush)
         {
