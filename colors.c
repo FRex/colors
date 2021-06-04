@@ -177,10 +177,10 @@ static int mygetline(char * buff, int len, int * toomuch)
     if(buff[0] == '\0' && feof(stdin))
         return 0;
 
-    /* newline is treated as a normal separator and written out so keep it */
-    /* if entire buff is full and last char is not newline and its not eof then the line is too long */
+    /* newline is treated as a normal separator and written out so dont care for it */
+    /* if buff is full, assume the line is too long, dont even check for newline */
     /* NOTE: this assumes fgets doesnt modify characters past nul term it wrote */
-    if(buff[len - 1] != '@' && buff[len - 2] != '\n' && !feof(stdin))
+    if(buff[len - 1] == '\0')
         *toomuch = 1;
 
     return 1;
@@ -475,7 +475,7 @@ int main(int argc, char ** argv)
         if(toomuch)
         {
             /* todo: also print error in color if stderr is tty? */
-            fprintf(stderr, "warning: more than %d chars in line - degrading to plain cat\n", linebuffsize - 2);
+            fprintf(stderr, "warning: more than %d chars in line - degrading to plain cat\n", linebuffsize - 4);
             fputs(buff, stdout);
             while(fgets(buff, linebuffsize, stdin))
                 fputs(buff, stdout);
