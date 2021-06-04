@@ -519,7 +519,7 @@ int main(int argc, char ** argv)
 
         /* print any leftover word or separators (only one will be non-empty so order doesn't matter here) */
         mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
-        addColoredByHash(&outbuff, lastwordstart, (int)strlen(lastwordstart));
+        addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
         mybuff_add(&outbuff, "\n", 1);
 
         if(!noflush)
