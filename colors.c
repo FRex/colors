@@ -172,7 +172,8 @@ static int mygetline(char * buff, int len, int * toomuch)
         return 0;
 
     /* this happens for files that do have newline at end of file too */
-    if(strlen(buff) == 0 && feof(stdin))
+    /* first cond is optimized strlen(buff) == 0, compilers usually do that too */
+    if(buff[0] == '\0' && feof(stdin))
         return 0;
 
     /* if we have a newline at end of line - remove it */
