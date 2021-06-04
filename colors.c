@@ -432,9 +432,9 @@ int main(int argc, char ** argv)
         if(startswith(argv[i], "--wordlen="))
         {
             const char * argnum = argv[i] + strlen("--wordlen=");
-            if(strlen(argnum) > 4)
+            if(strlen(argnum) > 7)
             {
-                fprintf(stderr, "max 4 digits for --wordlen=\n");
+                fprintf(stderr, "max 7 digits for --wordlen=\n");
                 continue;
             }
 
