@@ -342,8 +342,7 @@ int main(int argc, char ** argv)
     char separatorset[260]; /* the set of separators, no repetitions*/
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[linebuffsize];
-    char separatorsbuff[linebuffsize];
-    int toomuch, i, verbose, separatorsbufflen, cat, wordlen, noflush;
+    int toomuch, i, verbose, separatorsamount, cat, wordlen, noflush;
     mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
@@ -483,7 +482,7 @@ int main(int argc, char ** argv)
             return 1;
         } /* if too much */
 
-        separatorsbufflen = 0;
+        separatorsamount = 0;
         while(*cur)
         {
             /* if we hit a non-continuation byte it means (assuming valid UTF-8
@@ -500,21 +499,21 @@ int main(int argc, char ** argv)
 
             if(indexedseparators[(unsigned char)*cur])
             {
-                separatorsbuff[separatorsbufflen++] = *cur; /* save the space char */
+                separatorsamount++;
                 addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
                 lastwordstart = cur + 1; /* next word starts at next char at least */
             }
             else
             {
-                mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
-                separatorsbufflen = 0;
+                mybuff_add(&outbuff, cur - separatorsamount, separatorsamount);
+                separatorsamount = 0;
             }
 
             ++cur;
         } /* while *cur */
 
         /* print any leftover word or separators (only one will be non-empty so order doesn't matter here) */
-        mybuff_add(&outbuff, separatorsbuff, separatorsbufflen);
+        mybuff_add(&outbuff, cur - separatorsamount, separatorsamount);
         addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
 
         if(!noflush)
