@@ -474,6 +474,7 @@ int main(int argc, char ** argv)
         if(toomuch)
         {
             /* todo: also print error in color if stderr is tty? */
+            mybuff_flush(&outbuff); /* important: flush whatever was colored already first */
             fprintf(stderr, "warning: more than %d chars in line - degrading to plain cat\n", linebuffsize - 4);
             fputs(buff, stdout);
             while(fgets(buff, linebuffsize, stdin))
