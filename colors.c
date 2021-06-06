@@ -73,14 +73,14 @@ static int enableConsoleColor(void)
 #endif /* COLORS_ON_WINDOWS */
 }
 
-/* linebuffsize must be smaller than mybuffsize to not process words bigger than
-   mybuffsize because that would make mybuff_add write past the end of its buffer */
-#define linebuffsize (64 * 1024)
-#define mybuffsize (256 * 1024)
+/* LINEBUFFSIZE must be smaller than MYBUFFSIZE to not process words bigger than
+   MYBUFFSIZE because that would make mybuff_add write past the end of its buffer */
+#define LINEBUFFSIZE (64 * 1024)
+#define MYBUFFSIZE (256 * 1024)
 
 typedef struct mybuff {
     int usage;
-    char data[mybuffsize];
+    char data[MYBUFFSIZE];
 } mybuff;
 
 static void mybuff_flush(mybuff * self)
@@ -94,7 +94,7 @@ static void mybuff_add(mybuff * self, const char * data, int datalen)
     if(datalen == 0)
         return;
 
-    if(self->usage + datalen > mybuffsize)
+    if(self->usage + datalen > MYBUFFSIZE)
         mybuff_flush(self);
 
     memcpy(self->data + self->usage, data, datalen);
@@ -256,6 +256,8 @@ static int printhelp(const char * argv0)
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
+    puts("");
+    printf("Buffer sizes: LINEBUFFSIZE=%d MYBUFFSIZE=%d\n", LINEBUFFSIZE, MYBUFFSIZE);
     printf("Available color format strings (%s):\n", ok ? "in that color each" : "values only");
     for(i = 0; i < kColorCount; ++i)
     {
@@ -359,7 +361,7 @@ int main(int argc, char ** argv)
 {
     char separatorset[260]; /* the set of separators, no repetitions*/
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
-    char buff[linebuffsize];
+    char buff[LINEBUFFSIZE];
     int toomuch, i, verbose, separatorsamount, cat, wordlen, noflush;
     int leftover, readc;
     mybuff outbuff;
@@ -376,7 +378,7 @@ int main(int argc, char ** argv)
     cat = hasCatOption(argc, argv);
     if(cat || !enableConsoleColor())
     {
-        while((readc = fread(buff, 1, linebuffsize, stdin)) > 0)
+        while((readc = fread(buff, 1, LINEBUFFSIZE, stdin)) > 0)
             fwrite(buff, 1, readc, stdout);
 
         return cat ? 0 : 1; /* return 0 if cat was requested, 1 if its error */
@@ -490,9 +492,9 @@ int main(int argc, char ** argv)
     {
         int ok;
         if(noflush)
-            ok = myfread(buff + leftover, linebuffsize - leftover, &toomuch);
+            ok = myfread(buff + leftover, LINEBUFFSIZE - leftover, &toomuch);
         else
-            ok = mygetline(buff + leftover, linebuffsize - leftover, &toomuch);
+            ok = mygetline(buff + leftover, LINEBUFFSIZE - leftover, &toomuch);
 
         if(!ok)
             break;
@@ -505,9 +507,9 @@ int main(int argc, char ** argv)
         {
             /* todo: also print error in color if stderr is tty? */
             mybuff_flush(&outbuff); /* important: flush whatever was colored already first */
-            fprintf(stderr, "warning: more than %d chars in %s - degrading to plain cat\n", linebuffsize - 4, noflush ? "word" : "line");
+            fprintf(stderr, "warning: more than %d chars in %s - degrading to plain cat\n", LINEBUFFSIZE - 4, noflush ? "word" : "line");
             fputs(buff, stdout);
-            while((readc = fread(buff, 1, linebuffsize, stdin)) > 0)
+            while((readc = fread(buff, 1, LINEBUFFSIZE, stdin)) > 0)
                 fwrite(buff, 1, readc, stdout);
 
             return 1;
