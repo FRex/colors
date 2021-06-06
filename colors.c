@@ -359,7 +359,7 @@ int main(int argc, char ** argv)
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[linebuffsize];
     int toomuch, i, verbose, separatorsamount, cat, wordlen, noflush;
-    int leftover;
+    int leftover, readc;
     mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
@@ -374,8 +374,8 @@ int main(int argc, char ** argv)
     cat = hasCatOption(argc, argv);
     if(cat || !enableConsoleColor())
     {
-        while(fgets(buff, linebuffsize, stdin))
-            fputs(buff, stdout);
+        while((readc = fread(buff, 1, linebuffsize, stdin)) > 0)
+            fwrite(buff, 1, readc, stdout);
 
         return cat ? 0 : 1; /* return 0 if cat was requested, 1 if its error */
     } /* if not enable console color */
@@ -505,8 +505,8 @@ int main(int argc, char ** argv)
             mybuff_flush(&outbuff); /* important: flush whatever was colored already first */
             fprintf(stderr, "warning: more than %d chars in %s - degrading to plain cat\n", linebuffsize - 4, noflush ? "word" : "line");
             fputs(buff, stdout);
-            while(fgets(buff, linebuffsize, stdin))
-                fputs(buff, stdout);
+            while((readc = fread(buff, 1, linebuffsize, stdin)) > 0)
+                fwrite(buff, 1, readc, stdout);
 
             return 1;
         } /* if too much */
