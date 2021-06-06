@@ -101,14 +101,15 @@ static void mybuff_add(mybuff * self, const char * data, int datalen)
     self->usage += datalen;
 }
 
-typedef struct mystring {
+typedef struct mycolorstring {
     const char * string;
     int length;
-} mystring;
+    const char * description;
+} mycolorstring;
 
-const mystring kColors[] = {
-#define FORMAT_COLOR_HELPER(literal) {literal, sizeof(literal) - 1}
-#define FORMAT_COLOR(r, g, b) FORMAT_COLOR_HELPER("\033[38;2;"#r";"#g";"#b"m")
+const mycolorstring kColors[] = {
+#define FORMAT_COLOR_HELPER(literal, description) {literal, sizeof(literal) - 1, description}
+#define FORMAT_COLOR(r, g, b) FORMAT_COLOR_HELPER("\033[38;2;"#r";"#g";"#b"m", "RGB("#r", "#g", "#b")")
     FORMAT_COLOR(255, 255, 255),
     FORMAT_COLOR(255, 0, 0),
     FORMAT_COLOR(0, 255, 0),
@@ -251,6 +252,7 @@ static int printhelp(const char * argv0)
     printf("    --wordlen=NUM    - limit words to NUM bytes but keep UTF-8 intact\n");
     printf("    --no-flush       - don't flush the stdout after each line\n");
     printf("    --noflush        - alias for --no-flush\n");
+    printf("    --help           - print this help to stdout\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
@@ -265,7 +267,7 @@ static int printhelp(const char * argv0)
         if(ok)
             fputs(COLOR_RESET_STRING, stdout);
 
-        putc('\n', stdout);
+        printf(" - %s\n", kColors[i].description);
     } /* for each color */
 
     return 0;
