@@ -75,7 +75,7 @@ static int enableConsoleColor(void)
 
 /* linebuffsize must be smaller than mybuffsize to not process words bigger than
    mybuffsize because that would make mybuff_add write past the end of its buffer */
-#define linebuffsize (4096)
+#define linebuffsize (64 * 1024)
 #define mybuffsize (256 * 1024)
 
 typedef struct mybuff {
@@ -184,6 +184,22 @@ static int mygetline(char * buff, int len, int * toomuch)
         *toomuch = 1;
 
     return 1;
+}
+
+static int myfread(char * buff, int len, int * toomuch)
+{
+    int ret;
+
+    if(len <= 1)
+    {
+        buff[0] = '\0';
+        *toomuch = 1;
+        return 1;
+    }
+
+    ret = fread(buff, 1, len - 1, stdin);
+    buff[ret] = '\0';
+    return ret > 0;
 }
 
 static int startswith(const char * s, const char * n)
@@ -343,6 +359,7 @@ int main(int argc, char ** argv)
     char indexedseparators[260]; /* c is separator iff indexedseparators[c] */
     char buff[linebuffsize];
     int toomuch, i, verbose, separatorsamount, cat, wordlen, noflush;
+    int leftover;
     mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
@@ -466,16 +483,27 @@ int main(int argc, char ** argv)
     if(wordlen == 0)
         wordlen = 1 << 30;
 
-    while(mygetline(buff, linebuffsize, &toomuch))
+    leftover = 0;
+    while(1)
     {
-        const char * lastwordstart = buff;
-        char * cur = buff;
+        int ok;
+        if(noflush)
+            ok = myfread(buff + leftover, linebuffsize - leftover, &toomuch);
+        else
+            ok = mygetline(buff + leftover, linebuffsize - leftover, &toomuch);
 
+        if(!ok)
+            break;
+
+        const char * lastwordstart = buff;
+        char * cur = buff + leftover;
+
+        leftover = 0;
         if(toomuch)
         {
             /* todo: also print error in color if stderr is tty? */
             mybuff_flush(&outbuff); /* important: flush whatever was colored already first */
-            fprintf(stderr, "warning: more than %d chars in line - degrading to plain cat\n", linebuffsize - 4);
+            fprintf(stderr, "warning: more than %d chars in %s - degrading to plain cat\n", linebuffsize - 4, noflush ? "word" : "line");
             fputs(buff, stdout);
             while(fgets(buff, linebuffsize, stdin))
                 fputs(buff, stdout);
@@ -514,19 +542,28 @@ int main(int argc, char ** argv)
         } /* while *cur */
 
         /* print any leftover word or separators (only one will be non-empty so order doesn't matter here) */
-        mybuff_add(&outbuff, cur - separatorsamount, separatorsamount);
-        addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
+        /* in no flush mode dont print that word yet, in case its partial match, try move it to front and read again */
+        if(noflush)
+        {
+            leftover = (int)(cur - lastwordstart);
+            memmove(buff, lastwordstart, leftover);
+        }
+        else
+            addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
 
+        mybuff_add(&outbuff, cur - separatorsamount, separatorsamount);
         if(!noflush)
         {
             mybuff_flush(&outbuff); /* buffer more than one line in noflush mode */
             fflush(stdout); /* to make sure even with pipes or redirections the lines appear as soon as possible */
         }
-    } /* while mygetline */
+    }
+
+    if(leftover > 0)
+        addColoredByHash(&outbuff, buff, leftover);
 
     /* make sure to flush buffered output at the end - matters for no flush mode */
     mybuff_flush(&outbuff);
     fflush(stdout);
-
     return 0;
 }
