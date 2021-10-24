@@ -254,6 +254,7 @@ static int printhelp(const char * argv0)
     printf("    --noflush        - alias for --no-flush\n");
     printf("    --help           - print this help to stdout\n");
     printf("    --cat            - do no coloring and work like cat does\n");
+    printf("    --alnum          - consider all ASCII non-alnum printable characters as separators\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
@@ -311,6 +312,21 @@ static int hasCatOption(int argc, char ** argv)
     int i;
     for(i = 1; i < argc; ++i)
         if(isCatOption(argv[i]))
+            return 1;
+
+    return 0;
+}
+
+static int isAlnumOption(const char * a)
+{
+    return sameString(a, "--alnum");
+}
+
+static int hasAlnumOption(int argc, char ** argv)
+{
+    int i;
+    for(i = 1; i < argc; ++i)
+        if(isAlnumOption(argv[i]))
             return 1;
 
     return 0;
@@ -390,6 +406,13 @@ int main(int argc, char ** argv)
     /* prepare the separators set */
     memset(separatorset, 0x0, 260);
     strcpy(separatorset, " \f\n\r\t\v");
+    if(hasAlnumOption(argc, argv))
+    {
+        strcpy(separatorset, "~{&@)\t_^$\"?\v*[(\r=/\\,|]#>+\f -\n!}.;<`%\':");
+        if(verbose)
+            fprintf(stderr, "the --alnum option is set, printable ASCII non-alnum will be separators\n");
+    }
+
     if(verbose)
     {
         fprintf(stderr, "starting with separator set '");
@@ -401,7 +424,7 @@ int main(int argc, char ** argv)
     noflush = 0;
     for(i = 1; i < argc; ++i)
     {
-        if(isVerboseOption(argv[i]) || isCatOption(argv[i]))
+        if(isVerboseOption(argv[i]) || isCatOption(argv[i]) || isAlnumOption(argv[i]))
             continue;
 
         if(isNoflushOption(argv[i]))

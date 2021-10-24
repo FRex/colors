@@ -22,6 +22,7 @@ sequence of a single codepoint in two (so if the threshold is reached
 mid-codepoint it will continue taking codeunits until that codepoint ends).
 Use `--no-flush` or `--noflush` to not work line-by-line (faster but will no
 longer work nicely with slow outputting programs, interactive use, etc.).
+Option `--alnum` is a shortcut for setting all printable ASCII non-alnum as separators.
 
 Go to releases to find:
 1. Unotptimized 32-bit Windows exe built with Pelles C (a niche C
