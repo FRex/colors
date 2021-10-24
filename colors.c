@@ -253,6 +253,7 @@ static int printhelp(const char * argv0)
     printf("    --no-flush       - don't flush the stdout after each line\n");
     printf("    --noflush        - alias for --no-flush\n");
     printf("    --help           - print this help to stdout\n");
+    printf("    --cat            - do no coloring and work like cat does\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
