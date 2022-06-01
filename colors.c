@@ -129,9 +129,14 @@ const mycolorstring kColors[] = {
 const int kColorCount = sizeof(kColors) / sizeof(kColors[0]);
 
 /* 32-bit fnv1a */
-static unsigned fnv(const char * str, int length)
+static unsigned fnv(const char * str, int length, unsigned char seed)
 {
     unsigned ret = 2166136261u;
+
+    /* hash in first extra byte as a primitive seed */
+    ret ^= seed;
+    ret *= 16777619u;
+
     while(length > 0)
     {
         ret ^= (unsigned char)(*str);
@@ -146,7 +151,7 @@ static unsigned fnv(const char * str, int length)
 #define COLOR_RESET_STRING "\033[0m"
 #define COLOR_RESET_STRING_LENGTH (sizeof(COLOR_RESET_STRING) - 1)
 
-static void addColoredByHash(mybuff * outbuff, const char * str, int length)
+static void addColoredByHash(mybuff * outbuff, const char * str, int length, unsigned char seed)
 {
     int idx;
 
@@ -154,7 +159,7 @@ static void addColoredByHash(mybuff * outbuff, const char * str, int length)
     if(length == 0)
         return;
 
-    idx = fnv(str, length) % kColorCount;
+    idx = fnv(str, length, seed) % kColorCount;
     mybuff_add(outbuff, kColors[idx].string, kColors[idx].length);
     mybuff_add(outbuff, str, length);
     mybuff_add(outbuff, COLOR_RESET_STRING, COLOR_RESET_STRING_LENGTH);
@@ -255,6 +260,7 @@ static int printhelp(const char * argv0)
     printf("    --help           - print this help to stdout\n");
     printf("    --cat            - do no coloring and work like cat does\n");
     printf("    --alnum          - consider all ASCII non-alnum printable characters as separators\n");
+    printf("    --seed=SEED      - seed to use in the hash, from 1 to 255 inclusive\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
@@ -381,6 +387,7 @@ int main(int argc, char ** argv)
     char buff[LINEBUFFSIZE];
     int toomuch, i, verbose, separatorsamount, cat, wordlen, noflush;
     int leftover, readc;
+    unsigned char seed;
     mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
@@ -422,6 +429,7 @@ int main(int argc, char ** argv)
 
     wordlen = 0;
     noflush = 0;
+    seed = 0;
     for(i = 1; i < argc; ++i)
     {
         if(isVerboseOption(argv[i]) || isCatOption(argv[i]) || isAlnumOption(argv[i]))
@@ -495,6 +503,23 @@ int main(int argc, char ** argv)
             continue;
         } /* if --wordlen= */
 
+        if(startswith(argv[i], "--seed="))
+        {
+            const char * argnum = argv[i] + strlen("--seed=");
+            const int seedattempt = atoi(argnum);
+            if(1 <= seedattempt && seedattempt <= 255)
+            {
+                seed = (unsigned char)seedattempt;
+                if(verbose)
+                    fprintf(stderr, "seed successfully set to %d\n", seedattempt);
+            }
+            else
+                fprintf(stderr, "seed must be from 1 to 255 inclusive, '%s' evaluated to %d\n", argnum, seedattempt);
+
+            continue;
+        } /* if --seed= */
+
+
         fprintf(stderr, "unknown option: %s\n", argv[i]);
     }
 
@@ -550,14 +575,14 @@ int main(int argc, char ** argv)
                flush the word anyway, and if not then it'd run this exact check */
             if((int)(cur - lastwordstart) >= wordlen && !isUtf8ContinuationByte(*cur))
             {
-                addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
+                addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart), seed);
                 lastwordstart = cur;
             }
 
             if(indexedseparators[(unsigned char)*cur])
             {
                 separatorsamount++;
-                addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
+                addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart), seed);
                 lastwordstart = cur + 1; /* next word starts at next char at least */
             }
             else
@@ -577,7 +602,7 @@ int main(int argc, char ** argv)
             memmove(buff, lastwordstart, leftover);
         }
         else
-            addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart));
+            addColoredByHash(&outbuff, lastwordstart, (int)(cur - lastwordstart), seed);
 
         mybuff_add(&outbuff, cur - separatorsamount, separatorsamount);
         if(!noflush)
@@ -588,7 +613,7 @@ int main(int argc, char ** argv)
     }
 
     if(leftover > 0)
-        addColoredByHash(&outbuff, buff, leftover);
+        addColoredByHash(&outbuff, buff, leftover, seed);
 
     /* make sure to flush buffered output at the end - matters for no flush mode */
     mybuff_flush(&outbuff);
