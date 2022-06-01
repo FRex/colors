@@ -23,6 +23,9 @@ mid-codepoint it will continue taking codeunits until that codepoint ends).
 Use `--no-flush` or `--noflush` to not work line-by-line (faster but will no
 longer work nicely with slow outputting programs, interactive use, etc.).
 Option `--alnum` is a shortcut for setting all printable ASCII non-alnum as separators.
+Option `--seed=x` sets the seed, from 1 to 255 inclusive, to modify what
+colors are assigned to what words, in case you want to rerun because the words
+you tried to tell apart appeared as the same color originally.
 
 Go to releases to find:
 1. Unotptimized 32-bit Windows exe built with Pelles C (a niche C
