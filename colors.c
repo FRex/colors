@@ -261,6 +261,7 @@ static int printhelp(const char * argv0)
     printf("    --cat            - do no coloring and work like cat does\n");
     printf("    --alnum          - consider all ASCII non-alnum printable characters as separators\n");
     printf("    --seed=SEED      - seed to use in the hash, from 1 to 255 inclusive\n");
+    printf("    --char           - aslias for --wordlen=1\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
@@ -477,6 +478,15 @@ int main(int argc, char ** argv)
         if(sameString(argv[i], "--wordlen") || sameString(argv[i], "--wordlen="))
         {
             fprintf(stderr, "--wordlen argument requires a number value after =\n");
+            continue;
+        }
+
+        if(startswith(argv[i], "--char"))
+        {
+            wordlen = 1;
+            if(verbose)
+                fprintf(stderr, "wordlen successfully set to %d by --char option\n", wordlen);
+
             continue;
         }
 
