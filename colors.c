@@ -129,14 +129,9 @@ const mycolorstring kColors[] = {
 const int kColorCount = sizeof(kColors) / sizeof(kColors[0]);
 
 /* 32-bit fnv1a */
-static unsigned fnv(const char * str, int length, unsigned char seed)
+static unsigned fnv(const char * str, int length, unsigned seed)
 {
     unsigned ret = 2166136261u;
-
-    /* hash in first extra byte as a primitive seed */
-    ret ^= seed;
-    ret *= 16777619u;
-
     while(length > 0)
     {
         ret ^= (unsigned char)(*str);
@@ -145,7 +140,8 @@ static unsigned fnv(const char * str, int length, unsigned char seed)
         ++str;
     } /* while length > 0 */
 
-    return ret;
+    /* xor return with seed, as a primitive technique */
+    return ret ^ seed;
 }
 
 #define COLOR_RESET_STRING "\033[0m"
@@ -260,7 +256,7 @@ static int printhelp(const char * argv0)
     printf("    --help           - print this help to stdout\n");
     printf("    --cat            - do no coloring and work like cat does\n");
     printf("    --alnum          - consider all ASCII non-alnum printable characters as separators\n");
-    printf("    --seed=SEED      - seed to use in the hash, from 1 to 255 inclusive\n");
+    printf("    --seed=SEED      - seed to use in the hash, a string that will be hashed\n");
     printf("    --char           - aslias for --wordlen=1\n");
 
     /* print colors in their color, if possible, else in default color */
@@ -388,7 +384,7 @@ int main(int argc, char ** argv)
     char buff[LINEBUFFSIZE];
     int toomuch, i, verbose, separatorsamount, cat, wordlen, noflush;
     int leftover, readc;
-    unsigned char seed;
+    unsigned seed;
     mybuff outbuff;
 
     /* enable binary stdin/stdout/stderr as soon as possible */
@@ -515,16 +511,10 @@ int main(int argc, char ** argv)
 
         if(startswith(argv[i], "--seed="))
         {
-            const char * argnum = argv[i] + strlen("--seed=");
-            const int seedattempt = atoi(argnum);
-            if(1 <= seedattempt && seedattempt <= 255)
-            {
-                seed = (unsigned char)seedattempt;
-                if(verbose)
-                    fprintf(stderr, "seed successfully set to %d\n", seedattempt);
-            }
-            else
-                fprintf(stderr, "seed must be from 1 to 255 inclusive, '%s' evaluated to %d\n", argnum, seedattempt);
+            const char * argstring = argv[i] + strlen("--seed=");
+            seed = fnv(argstring, strlen(argstring), 0u);
+            if(verbose)
+                fprintf(stderr, "seed set to fnv(%s) = %u\n", argstring, seed);
 
             continue;
         } /* if --seed= */
