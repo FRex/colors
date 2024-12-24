@@ -59,8 +59,9 @@ static int enableConsoleColor(void)
         return 0;
     }
 
-    /* ENABLE_VIRTUAL_TERMINAL_PROCESSING, by value in case its missing from header... */
-    mode |= 0x0004;
+    /* ENABLE_VIRTUAL_TERMINAL_PROCESSING and ENABLE_PROCESSED_OUTPUT, by value in case its missing
+       from header... also docs of SetConsoleMode say that these flags must be used together */
+    mode |= 0x0004 | 0x0001;
 
     if(!SetConsoleMode(console, mode))
     {
