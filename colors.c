@@ -247,6 +247,7 @@ static int printhelp(const char * argv0)
     int i, ok;
 
     printf("%s - pipe to color same words same random colors\n", exename);
+    printf("For latest updates see: https://github.com/FRex/colors\n\n");
     printf("Help: %s -h or %s --help\n", exename, exename);
     printf("Usage: %s [-v] [--verbose] [--addsep=chars]...\n", exename);
     printf("    --addsep=chars   - adds chars to list of word separators\n");
