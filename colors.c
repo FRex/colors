@@ -228,7 +228,7 @@ static int addtoset(char * set, const char * newelements)
     return ret;
 }
 
-static const char * basename(const char * fpath)
+static const char * exenamefrompath(const char * fpath)
 {
     const char * ret = fpath;
 
@@ -243,7 +243,7 @@ static const char * basename(const char * fpath)
 
 static int printhelp(const char * argv0)
 {
-    const char * exename = basename(argv0);
+    const char * exename = exenamefrompath(argv0);
     int i, ok;
 
     printf("%s - pipe to color same words same random colors\n", exename);
