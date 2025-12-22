@@ -259,7 +259,7 @@ static int printhelp(const char * argv0)
     printf("    --cat            - do no coloring and work like cat does\n");
     printf("    --alnum          - consider all ASCII non-alnum printable characters as separators\n");
     printf("    --seed=SEED      - seed to use in the hash, a string that will be hashed\n");
-    printf("    --char           - aslias for --wordlen=1\n");
+    printf("    --char           - alias for --wordlen=1\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
