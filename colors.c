@@ -260,6 +260,7 @@ static int printhelp(const char * argv0)
     printf("    --alnum          - consider all ASCII non-alnum printable characters as separators\n");
     printf("    --seed=SEED      - seed to use in the hash, a string that will be hashed\n");
     printf("    --char           - alias for --wordlen=1\n");
+    printf("    --line           - remove all word separators\n");
 
     /* print colors in their color, if possible, else in default color */
     ok = enableConsoleColor();
@@ -471,6 +472,14 @@ int main(int argc, char ** argv)
 
             continue;
         } /* if --addsep */
+
+        if(sameString(argv[i], "--line"))
+        {
+            if(verbose)
+                fprintf(stderr, "got --line option, removing all separators from the set\n");
+            memset(separatorset, 0x0, 260);
+            continue;
+        }
 
         /* catch --wordlen option with no value or even no = */
         if(sameString(argv[i], "--wordlen") || sameString(argv[i], "--wordlen="))

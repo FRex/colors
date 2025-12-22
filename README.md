@@ -11,7 +11,9 @@ value 0, `00` in hex) in them. An option to handle this might be added later.
 ![screenshot](screenshot.png)
 
 Run with `--addsep=chars` to add `chars` as extra word separators and with
-`-h` or `--help` to see help. With `--cat` it acts like `cat` (I use this for
+`-h` or `--help` to see help. Use `--line` to clear list of word separators
+(to color entire lines, or then add own separators with `--addsep`).
+With `--cat` it acts like `cat` (I use this for
 benchmarking - this mode is the ideal and coloring is slower due to overhead).
 Option `--wordlen=x` where x is a positive number will split words into parts
 of that length at most, to make it clear in case there is many long words that
