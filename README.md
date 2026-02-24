@@ -32,13 +32,10 @@ Option `--seed=x` sets the seed, from 1 to 255 inclusive, to modify what
 colors are assigned to what words, in case you want to rerun because the words
 you tried to tell apart appeared as the same color originally.
 
-Go to releases to find:
-1. Unotptimized 32-bit Windows exe built with Pelles C (a niche C
-compiler: [link](http://www.smorgasbordet.com/pellesc/download.htm)).
-2. Optimized 64-bit Windows exe built with GCC -O3 (from
+Go to releases to find optimized 64-bit Windows exe built with GCC -O3 (from
 [w64devkit](https://nullprogram.com/blog/2020/09/25/)).
 
-Keep in mind 24-bit ANSI colors in console require quite a recent Windows 10 version:
+Keep in mind 24-bit ANSI colors in console require quite a 2016+ Windows 10 version:
 [link](https://devblogs.microsoft.com/commandline/24-bit-color-in-the-windows-console/).
 
 Please let me know if it doesn't compile or work on your terminal, OS, Distro,
