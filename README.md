@@ -3,12 +3,14 @@
 A small command that works as a pipe and colors words in random colors
 (consistently coloring same words same colors), to make it easier to spot
 same words in the output. E.g. to see potentially same values of some hash,
-(example is my other tool [pixelsum](https://github.com/FRex/pixelsum)):
+(example is my other tool [pixelsum](https://github.com/FRex/pixelsum))
+or other similar/repetitive but not exactly same data (like inode numbers):
+
+![screenshot](screenshot.png)
+![screenshot2](screenshot2.png)
 
 It does not correctly handle files with `NUL` (ASCII/UTF-8 byte of
 value 0, `00` in hex) in them. An option to handle this might be added later.
-
-![screenshot](screenshot.png)
 
 Run with `--addsep=chars` to add `chars` as extra word separators and with
 `-h` or `--help` to see help. Use `--line` to clear list of word separators
