@@ -1,16 +1,27 @@
-# colors
+# Colors
 
-A small command that works as a pipe and colors words in random colors
+**Colors** is a small command line utility that works as a pipe and colors words in random colors
 (consistently coloring same words same colors), to make it easier to spot
-same words in the output. E.g. to see potentially same values of some hash,
-(example is my other tool [pixelsum](https://github.com/FRex/pixelsum))
-or other similar/repetitive but not exactly same data (like inode numbers):
-
-![screenshot](screenshot.png)
-![screenshot2](screenshot2.png)
+same words in the output.
 
 It does not correctly handle files with `NUL` (ASCII/UTF-8 byte of
 value 0, `00` in hex) in them. An option to handle this might be added later.
+
+
+## Screenshots
+
+Colors can be useful to see difference in long hash values without focusing on
+specific characters (example is my other tool [pixelsum](https://github.com/FRex/pixelsum))
+or between other similar/repetitive but not exactly same data (like inode
+numbers or many similar strings):
+
+![screenshot](screenshot.png)
+![screenshot2](screenshot2.png)
+![screenshot3](screenshot3.png)
+
+
+## Arguments
+
 
 Run with `--addsep=chars` to add `chars` as extra word separators and with
 `-h` or `--help` to see help. Use `--line` to clear list of word separators
@@ -34,14 +45,21 @@ Option `--seed=x` sets the seed, from 1 to 255 inclusive, to modify what
 colors are assigned to what words, in case you want to rerun because the words
 you tried to tell apart appeared as the same color originally.
 
-Go to releases to find optimized 64-bit Windows exe built with GCC -O3 (from
-[w64devkit](https://nullprogram.com/blog/2020/09/25/)).
+
+## Build
+
+Go to releases to find optimized 64-bit Windows exe built with `gcc -O3` from
+[w64devkit](https://nullprogram.com/blog/2020/09/25/).
 
 Keep in mind 24-bit ANSI colors in console require quite a 2016+ Windows 10 version:
-[link](https://devblogs.microsoft.com/commandline/24-bit-color-in-the-windows-console/).
+[link](https://devblogs.microsoft.com/commandline/24-bit-color-in-the-windows-console/)
+and might not work in older versions of `screen` (but `tmux` seems fine).
 
 Please let me know if it doesn't compile or work on your terminal, OS, Distro,
 GCC default settings, etc. or if you find any bugs or have any improvement ideas.
+
+
+## Performance
 
 Speed should not be an issue ever since these commits were made:
 1. https://github.com/FRex/colors/commit/45869c10e3dbb38fa15330ac6f98e3e91c0dd78d
